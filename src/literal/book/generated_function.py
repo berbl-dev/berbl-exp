@@ -4,7 +4,7 @@ import click
 import numpy as np  # type: ignore
 from tasks.book.generated_function import generate
 
-from .experiment import experiment
+from . import experiment
 
 np.seterr(all="warn")
 
@@ -30,8 +30,19 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment(gaparams, X, y, X_test, y_test_true, X_denoised, y_denoised,
-               n_iter, seed, show, sample_size, standardize=standardize)
+    experiment("lit.book.generated_function",
+               gaparams,
+               X,
+               y,
+               X_test,
+               y_test_true,
+               X_denoised,
+               y_denoised,
+               n_iter,
+               seed,
+               show,
+               sample_size,
+               standardize=standardize)
 
 
 if __name__ == "__main__":

@@ -1,8 +1,8 @@
 import click
 import numpy as np  # type: ignore
-from prolcs.tasks.book.sparse_noisy_data import f, generate
+from tasks.book.sparse_noisy_data import f, generate
 
-from .experiment import experiment
+from . import experiment
 
 np.seterr(all="warn")
 
@@ -28,8 +28,19 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment(gaparams, X, y, X_test, y_test_true, X_denoised, y_denoised, n_iter, seed,
-               show, sample_size, standardize=standardize)
+    experiment("lit.book.sparse_noisy_data",
+               gaparams,
+               X,
+               y,
+               X_test,
+               y_test_true,
+               X_denoised,
+               y_denoised,
+               n_iter,
+               seed,
+               show,
+               sample_size,
+               standardize=standardize)
 
 
 if __name__ == "__main__":

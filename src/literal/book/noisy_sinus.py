@@ -1,9 +1,9 @@
 # TODO Need soft interval matching for this
 import click
 import numpy as np  # type: ignore
-from prolcs.tasks.book.noisy_sinus import f, generate
+from tasks.book.noisy_sinus import f, generate
 
-from .experiment import experiment
+from . import experiment
 
 
 @click.command()
@@ -26,8 +26,21 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment(gaparams, X, y, X_test, y_test_true, X_denoised, y_denoised, n_iter, seed,
-               show, sample_size, standardize=standardize)
+    # TODO Remove the tilde as soon as we replicate the book experiment
+    # (soft-interval matching).
+    experiment("lit.~book.noisy_sinus",
+               gaparams,
+               X,
+               y,
+               X_test,
+               y_test_true,
+               X_denoised,
+               y_denoised,
+               n_iter,
+               seed,
+               show,
+               sample_size,
+               standardize=standardize)
 
 
 if __name__ == "__main__":
