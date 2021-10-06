@@ -1,9 +1,7 @@
-# TODO Drugowitsch uses soft-interval matching here, I haven't implemented that
-# as of now
-
 import click
 import numpy as np  # type: ignore
 from tasks.book.variable_noise import f, generate
+from prolcs.match.softinterval1d_drugowitsch import SoftInterval1D
 
 from . import experiment
 
@@ -21,7 +19,7 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
 
     # generate equidistant, denoised data as well (only for visual reference);
     # note that this doesn't need to be transformed back and forth
-    X_denoised = np.linspace(0, 1, 100)[:, np.newaxis]
+    X_denoised = np.linspace(-1, 1, 100)[:, np.newaxis]
     y_denoised = f(X_denoised, noise_vars=(0, 0))
 
     gaparams = {
@@ -29,9 +27,8 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
         "p": 0.5,
         "tournsize": 5,
     }
-    # TODO Remove the tilde as soon as we replicate the book experiment
-    # (soft-interval matching).
-    experiment("lit.~book.variable_noise",
+    experiment("lit.book.variable_noise",
+               SoftInterval1D,
                gaparams,
                X,
                y,

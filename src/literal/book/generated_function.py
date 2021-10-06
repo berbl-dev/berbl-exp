@@ -3,6 +3,7 @@
 import click
 import numpy as np  # type: ignore
 from tasks.book.generated_function import generate
+from prolcs.match.radial1d_drugowitsch import RadialMatch1D
 
 from . import experiment
 
@@ -31,6 +32,7 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
         "tournsize": 5,
     }
     experiment("lit.book.generated_function",
+               RadialMatch1D,
                gaparams,
                X,
                y,
