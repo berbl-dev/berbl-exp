@@ -1,5 +1,9 @@
 let
   bootstrap = import <nixpkgs> { };
+  prolcsSrc = fetchGit {
+    url = "git@git.rz.uni-augsburg.de:hoffmada/prolcs.git";
+    rev = "db3caef8dbf09b8a6a662a93e4f3b18eeeb509d2";
+  };
   pkgs = import (bootstrap.fetchFromGitHub {
     owner = "NixOS";
     repo = "nixpkgs";
@@ -48,12 +52,12 @@ let
               ]);
             meta.broken = false;
           });
+          prolcs = pkgs.callPackage prolcsSrc {
+            buildPythonPackage = pkgs.python3Packages.buildPythonPackage;
+          };
         };
       };
     };
-  };
-  prolcs = pkgs.callPackage ../prolcs/default.nix {
-    buildPythonPackage = pkgs.python3Packages.buildPythonPackage;
   };
   env = pkgs.python3.withPackages (ps:
     with ps; [
