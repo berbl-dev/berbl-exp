@@ -1,0 +1,3 @@
+[submodule "prolcs"]
+	path = prolcs
+	url = git@git.rz.uni-augsburg.de:hoffmada/prolcs.git
