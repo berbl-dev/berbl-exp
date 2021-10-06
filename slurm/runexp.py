@@ -55,7 +55,7 @@ def run_experiment(n_iter, seed, time, reps, mem, experiment):
         f'#SBATCH --mem={mem}',
         f'#SBATCH --partition=cpu',
         f'#SBATCH --output={job_dir}/output/output-%A-%a.txt',
-        f'#SBATCH --array=0-{reps}',
+        f'#SBATCH --array=0-{reps - 1}',
         (f'nix-shell "{job_dir}/default.nix" --command '
          f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
          f'--seed $(({seed} + $SLURM_ARRAY_TASK_ID))"')
