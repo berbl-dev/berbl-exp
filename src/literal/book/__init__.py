@@ -122,6 +122,8 @@ def experiment(name,
         # two additional statistics to maybe better gauge solution performance
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
+        log_("elitist.size", estimator.size_[0])
+        log_("elitist.p_M_D", estimator.p_M_D_[0])
         log_("elitist.mse", mse, n_iter)
         log_("elitist.r2-score", r2, n_iter)
 
