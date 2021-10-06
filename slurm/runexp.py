@@ -47,8 +47,6 @@ def run_experiment(n_iter, seed, time, reps, mem, experiment):
     # relative imports).
     experiment = experiment.replace("/", ".")
 
-    experiment = "prolcs/experiments/{experiment}".replace("/", ".")
-
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
         f'#SBATCH --time={time}',
