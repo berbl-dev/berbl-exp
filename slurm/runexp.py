@@ -37,11 +37,11 @@ def run_experiment(n_iter, seed, time, reps, mem, experiment):
     Run EXPERIMENT on the cluster.
     """
 
-    job_dir = "/data/oc-compute02/hoffmada/prolcs"
+    job_dir = "/data/oc-compute02/hoffmada/prolcs-reproducibility-experiments"
 
     path = pathlib.Path(job_dir, "src", f"{experiment}.py")
     if not path.is_file():
-        print(f"Experiment {path.name} does not exist. Check path.")
+        print(f"Experiment {path.name} does not exist. Check path ({path}).")
         exit(1)
     # Use module instead of path (otherwise we get errors when using
     # relative imports).
@@ -56,7 +56,7 @@ def run_experiment(n_iter, seed, time, reps, mem, experiment):
         f'#SBATCH --partition=cpu',
         f'#SBATCH --output={job_dir}/output/output-%A-%a.txt',
         f'#SBATCH --array=0-{reps - 1}',
-        (f'nix-shell "{job_dir}/default.nix" --command '
+        (f'nix-shell "{job_dir}/shell.nix" --command '
          f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
          f'--seed $(({seed} + $SLURM_ARRAY_TASK_ID))"')
     ])
