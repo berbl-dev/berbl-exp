@@ -11,7 +11,6 @@ import click
 
 
 @click.command()
-@click.option("-n", "--n_iter", type=click.IntRange(min=1), default=250)
 @click.option("-s",
               "--seed",
               type=click.IntRange(min=0),
@@ -32,7 +31,7 @@ import click
               default=10,
               help="Number of repetitions to run.")
 @click.argument("experiment")
-def run_experiment(n_iter, seed, time, reps, mem, experiment):
+def run_experiment(seed, time, reps, mem, experiment):
     """
     Run EXPERIMENT on the cluster.
     """
@@ -56,7 +55,7 @@ def run_experiment(n_iter, seed, time, reps, mem, experiment):
         f'#SBATCH --array=0-{reps - 1}',
         (f'nix-shell "{job_dir}/shell.nix" --command '
          f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
-         f'--seed $(({seed} + $SLURM_ARRAY_TASK_ID))"')
+         f'--seed=$(({seed} + $SLURM_ARRAY_TASK_ID))"')
     ])
     print(sbatch)
     print()
