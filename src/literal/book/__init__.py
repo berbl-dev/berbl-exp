@@ -11,7 +11,6 @@ from deap import creator, tools  # type: ignore
 from prolcs.common import initRepeat_binom
 from prolcs.literal.hyperparams import HParams
 from prolcs.literal.model import Model
-from prolcs.logging import log_
 from prolcs.search.ga.drugowitsch import GADrugowitsch
 from sklearn import metrics  # type: ignore
 from sklearn.preprocessing import StandardScaler
@@ -122,10 +121,10 @@ def experiment(name,
         # two additional statistics to maybe better gauge solution performance
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
-        log_("elitist.size", estimator.size_[0])
-        log_("elitist.p_M_D", estimator.p_M_D_[0])
-        log_("elitist.mse", mse, n_iter)
-        log_("elitist.r2-score", r2, n_iter)
+        mlflow.log_metric("elitist.size", estimator.size_[0], n_iter)
+        mlflow.log_metric("elitist.p_M_D", estimator.p_M_D_[0], n_iter)
+        mlflow.log_metric("elitist.mse", mse, n_iter)
+        mlflow.log_metric("elitist.r2-score", r2, n_iter)
 
         # store the model, you never know when you need it
         model_file = f"models/Model {seed}.joblib"
