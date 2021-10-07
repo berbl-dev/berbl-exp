@@ -1,10 +1,9 @@
 import click
 import numpy as np  # type: ignore
 from tasks.book.sparse_noisy_data import f, generate
+from prolcs.match.radial1d_drugowitsch import RadialMatch1D
 
 from . import experiment
-
-np.seterr(all="warn")
 
 
 @click.command()
@@ -29,6 +28,7 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
         "tournsize": 5,
     }
     experiment("lit.book.sparse_noisy_data",
+               RadialMatch1D,
                gaparams,
                X,
                y,
