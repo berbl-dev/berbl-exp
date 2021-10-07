@@ -13,11 +13,11 @@ from . import experiment
 @click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
 @click.option("--standardize/--no-standardize", type=bool, default=False)
 def run_experiment(n_iter, seed, show, sample_size, standardize):
+
     X, y = generate(sample_size)
     X_test, y_test_true = generate(1000, random_state=12345)
 
-    # generate equidistant, denoised data as well (only for visual reference);
-    # note that this doesn't need to be transformed back and forth
+    # generate equidistant, denoised data as well (only for visual reference)
     X_denoised = np.linspace(-1, 1, 100)[:, np.newaxis]
     y_denoised = f(X_denoised, noise_var=0)
 
