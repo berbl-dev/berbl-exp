@@ -5,7 +5,7 @@ import numpy as np  # type: ignore
 from tasks.book.generated_function import generate
 from prolcs.match.softinterval1d_drugowitsch import SoftInterval1D
 
-from . import experiment
+from .. import experiment
 
 np.seterr(all="warn")
 

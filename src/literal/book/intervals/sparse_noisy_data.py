@@ -3,7 +3,7 @@ import numpy as np  # type: ignore
 from tasks.book.sparse_noisy_data import f, generate
 from prolcs.match.softinterval1d_drugowitsch import SoftInterval1D
 
-from . import experiment
+from .. import experiment
 
 
 @click.command()
