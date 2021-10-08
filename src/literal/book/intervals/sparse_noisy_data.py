@@ -26,7 +26,7 @@ def run_experiment(n_iter, seed, show, sample_size, standardize):
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment("lit.book.sparse_noisy_data",
+    experiment("lit.book.int.sparse_noisy_data",
                SoftInterval1D,
                gaparams,
                X,
