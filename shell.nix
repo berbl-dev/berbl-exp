@@ -51,7 +51,7 @@ let
           prolcs = pkgs.callPackage ./prolcs/default.nix {
             buildPythonPackage = pkgs.python3Packages.buildPythonPackage;
           };
-          xcsf = with pkgs; callPackage ./nix-rpreen-xcsf/default.nix {
+          xcsf = with pkgs; callPackage ./xcsf/default.nix {
             inherit lib stdenv fetchgit cmake;
             toPythonModule = python3Packages.toPythonModule;
             python = python3;
