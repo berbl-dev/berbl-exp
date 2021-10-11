@@ -7,8 +7,6 @@ from prolcs.match.softinterval1d_drugowitsch import SoftInterval1D
 
 from .. import experiment
 
-np.seterr(all="warn")
-
 
 @click.command()
 @click.option("-n", "--n_iter", type=click.IntRange(min=1), default=250)
