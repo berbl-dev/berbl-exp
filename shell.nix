@@ -55,6 +55,7 @@ let
             inherit lib stdenv fetchgit cmake;
             toPythonModule = python3Packages.toPythonModule;
             python = python3;
+            tqdm = python3Packages.tqdm;
           };
         };
       };
