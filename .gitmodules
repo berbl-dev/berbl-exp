@@ -1,3 +1,6 @@
 [submodule "prolcs"]
 	path = prolcs
 	url = https://git.rz.uni-augsburg.de/hoffmada/prolcs
+[submodule "nix-rpreen-xcsf"]
+	path = nix-rpreen-xcsf
+	url = git@git.rz.uni-augsburg.de:hoffmada/nix-rpreen-xcsf.git
