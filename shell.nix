@@ -51,6 +51,11 @@ let
           prolcs = pkgs.callPackage ./prolcs/default.nix {
             buildPythonPackage = pkgs.python3Packages.buildPythonPackage;
           };
+          xcsf = with pkgs; callPackage ./nix-rpreen-xcsf/default.nix {
+            inherit lib stdenv fetchgit cmake;
+            toPythonModule = python3Packages.toPythonModule;
+            python = python3;
+          };
         };
       };
     };
@@ -59,6 +64,7 @@ let
     with ps; [
       click
       deap
+      ipython
       mlflowPatched
       numpy
       pandas
@@ -66,7 +72,7 @@ let
       scipy
       scikitlearn
       seaborn
-      ipython
+      xcsf
     ]);
 in
 pkgs.mkShell {
