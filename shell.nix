@@ -9,6 +9,34 @@ let
     config.packageOverrides = super: {
       python3 = super.python3.override {
         packageOverrides = python-self: python-super: {
+          pyparsing3 = python-super.buildPythonPackage rec {
+            # Copied from nixpkgs and slightly adjusted for 3.0.0rc2.
+            pname = "pyparsing";
+            version = "3.0.0rc2";
+
+            src = super.fetchFromGitHub {
+              owner = "pyparsing";
+              repo = pname;
+              rev = "pyparsing_${version}";
+              sha256 =
+                "sha256:0j2y4075s9596826cjw5k3z7c7fdnn53nkdahn466h9l0zgbyfx1";
+            };
+
+            # https://github.com/pyparsing/pyparsing/blob/847af590154743bae61a32c3dc1a6c2a19009f42/tox.ini#L6
+            checkInputs = [ python-super.coverage ];
+            checkPhase = ''
+                # coverage run --branch simple_unit_tests.py
+                # coverage run --branch unitTests.py
+              '';
+
+            meta = with super.lib; {
+              homepage = "https://github.com/pyparsing/pyparsing";
+              description =
+                "An alternative approach to creating and executing simple grammars, vs. the traditional lex/yacc approach, or the use of regular expressions";
+              license = licenses.mit;
+              maintainers = with maintainers; [ kamadorueda ];
+            };
+          };
           sqlalchemy = python-super.sqlalchemy.overrideAttrs (attrs: rec {
             pname = "SQLAlchemy";
             version = "1.3.13";
@@ -70,6 +98,7 @@ let
       numpy
       pandas
       prolcs
+      pyparsing3
       scipy
       scikitlearn
       seaborn
