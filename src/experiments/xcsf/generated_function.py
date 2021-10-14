@@ -6,13 +6,12 @@ import experiments.utils as utils
 import matplotlib.pyplot as plt
 import mlflow
 import numpy as np
-import pyparsing as pp
 import xcsf.xcsf as xcsf
 from sklearn import metrics  # type: ignore
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from tasks.book.generated_function import generate
 
-from . import log_xcs_params
+from . import log_xcs_params, parse_pop
 
 
 @click.command()
