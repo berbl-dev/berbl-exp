@@ -38,7 +38,7 @@ def run_experiment(seed, time, reps, mem, experiment):
 
     job_dir = "/data/oc-compute02/hoffmada/prolcs-reproducibility-experiments"
 
-    path = pathlib.Path(job_dir, "src", f"{experiment}.py")
+    path = pathlib.Path(job_dir, "src", f"experiments/{experiment}.py")
     if not path.is_file():
         print(f"Experiment {path.name} does not exist. Check path ({path}).")
         exit(1)
