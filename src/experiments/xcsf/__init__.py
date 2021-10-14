@@ -140,6 +140,8 @@ def experiment(name,
         mlflow.log_param("xcs.condition.args.spread-min", args["spread-min"])
         mlflow.log_param("xcs.condition.args.eta", args["eta"])
 
+        xcs.seed(seed)
+
         args = {
             "x0": 1,  # bias attribute
             "rls-scale-factor":
