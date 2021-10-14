@@ -1,3 +1,4 @@
+import json
 import os
 import tempfile
 
@@ -5,6 +6,10 @@ import matplotlib.pyplot as plt  # type: ignore
 import mlflow  # type: ignore
 import numpy as np  # type: ignore
 import pandas as pd  # type: ignore
+
+
+def log_json(a, label):
+    mlflow.log_text(json.dumps(a), f"{label}.json")
 
 
 def log_array(a, label):
