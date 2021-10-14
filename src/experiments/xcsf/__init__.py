@@ -1,5 +1,14 @@
+import io
+import tempfile
+
+import experiments.utils as utils
+import matplotlib.pyplot as plt
 import mlflow
 import pyparsing as pp
+import xcsf.xcsf as xcsf
+from experiments.utils import log_array, plot_prediction, save_plot
+from sklearn import metrics  # type: ignore
+from sklearn.preprocessing import StandardScaler
 
 
 def log_xcs_params(xcs):
@@ -76,3 +85,128 @@ def parse_pop(s):
     res = [x.as_dict() for x in rules.parse_string(s)]
 
     return res
+
+
+def experiment(name,
+               X,
+               y,
+               X_test,
+               y_test_true,
+               X_denoised,
+               y_denoised,
+               n_iter,
+               pop_size,
+               seed,
+               show,
+               sample_size,
+               standardize=False):
+    mlflow.set_experiment(name)
+    with mlflow.start_run() as run:
+        mlflow.log_param("seed", seed)
+        mlflow.log_param("train.size", sample_size)
+
+        log_array(X, "X")
+        log_array(y, "y")
+        log_array(X_test, "X_test")
+        log_array(y_test_true, "y_test_true")
+        log_array(X_denoised, "X_denoised")
+        log_array(y_denoised, "y_denoised")
+
+        if standardize:
+            scaler_X = StandardScaler()
+            scaler_y = StandardScaler()
+            X = scaler_X.fit_transform(X)
+            X_test = scaler_X.transform(X_test)
+            y = scaler_y.fit_transform(y)
+            y_test_true = scaler_y.transform(y_test_true)
+
+        xcs = xcsf.XCS(X.shape[1], y.shape[1], 1)  # only 1 (dummy) action
+
+        xcs.action("integer")  # (dummy) integer actions
+
+        # NOTE Preen: “Hyperrectangles and hyperellipsoids currently use the
+        # centre-spread representation (and axis-rotation is not yet implemented.)”
+        args = {
+            "min": -1,  # minimum value of a center
+            "max": 1,  # maximum value of a center
+            "spread-min": 0.1,  # minimum initial spread
+            "eta":
+            0,  # disable gradient descent of centers towards matched input mean
+        }
+        xcs.condition("hyperrectangle", args)
+        mlflow.log_param("xcs.condition", "hyperrectangle")
+        mlflow.log_param("xcs.condition.args.min", args["min"])
+        mlflow.log_param("xcs.condition.args.max", args["max"])
+        mlflow.log_param("xcs.condition.args.spread-min", args["spread-min"])
+        mlflow.log_param("xcs.condition.args.eta", args["eta"])
+
+        args = {
+            "x0": 1,  # bias attribute
+            "rls-scale-factor":
+            1000,  # initial diagonal values of the gain-matrix
+            "rls-lambda": 1,  # forget rate (small values may be unstable)
+        }
+        xcs.prediction("rls-linear", args)
+        mlflow.log_param("xcs.prediction", "rls-linear")
+        mlflow.log_param("xcs.prediction.args.x0", args["x0"])
+        mlflow.log_param("xcs.prediction.args.rls-scale-factor",
+                         args["rls-scale-factor"])
+        mlflow.log_param("xcs.prediction.args.rls-lambda", args["rls-lambda"])
+
+        xcs.OMP_NUM_THREADS = 8  # number of CPU cores to use
+        xcs.POP_SIZE = pop_size  # maximum population size
+        xcs.MAX_TRIALS = n_iter  # number of trials per fit()
+        xcs.LOSS_FUNC = "mse"  # mean squared error
+        xcs.SET_SUBSUMPTION = True
+        xcs.EA_SUBSUMPTION = True
+        xcs.E0 = 0.005  # target error
+        log_xcs_params(xcs)
+
+        xcs.fit(X, y, True)
+
+        # make predictions for test data
+        y_test = xcs.predict(X_test)
+
+        # TODO get unmixed classifier predictions
+
+        if standardize:
+            X = scaler_X.inverse_transform(X)
+            X_test = scaler_X.inverse_transform(X_test)
+            y = scaler_y.inverse_transform(y)
+            y_test = scaler_y.inverse_transform(y_test)
+
+        log_array(y_test, "y_test")
+
+        # get metrics
+        mae = metrics.mean_absolute_error(y_test_true, y_test)
+        mse = metrics.mean_squared_error(y_test_true, y_test)
+        r2 = metrics.r2_score(y_test_true, y_test)
+        mlflow.log_metric("mae", mae, n_iter)
+        mlflow.log_metric("mse", mse, n_iter)
+        mlflow.log_metric("r2-score", r2, n_iter)
+
+        mlflow.log_metric("size", xcs.pset_size())
+
+        # store the model, you never know when you need it
+        f = tempfile.NamedTemporaryFile(prefix=f"model-", suffix=f".model")
+        xcs.save(f.name)
+        mlflow.log_artifact(f.name)
+        f.close()
+
+        out = io.BytesIO()
+        with utils.stdout_redirector(out):
+            xcs.print_pset(True, True, True)
+
+        pop = parse_pop(out.getvalue().decode("utf-8"))
+        utils.log_json(pop, "population")
+
+        fig, ax = plot_prediction(X=X,
+                                  y=y,
+                                  X_test=X_test,
+                                  y_test=y_test,
+                                  X_denoised=X_denoised,
+                                  y_denoised=y_denoised)
+        save_plot(fig, seed)
+
+        if show:
+            plt.show()
