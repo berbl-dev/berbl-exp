@@ -16,10 +16,11 @@ from . import log_xcs_params, parse_pop
 
 @click.command()
 @click.option("-n", "--n_iter", type=click.IntRange(min=1), default=250)
+@click.option("-p", "--pop_size", type=click.IntRange(min=1), default=100)
 @click.option("-s", "--seed", type=click.IntRange(min=0), default=0)
 @click.option("--show/--no-show", type=bool, default=False)
 @click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
-def run_experiment(n_iter, seed, show, sample_size):
+def run_experiment(n_iter, pop_size, seed, show, sample_size):
 
     mlflow.set_experiment("xcsf.generated_function")
     with mlflow.start_run() as run:
@@ -83,7 +84,7 @@ def run_experiment(n_iter, seed, show, sample_size):
         mlflow.log_param("xcs.prediction.args.rls-lambda", args["rls-lambda"])
 
         xcs.OMP_NUM_THREADS = 8  # number of CPU cores to use
-        xcs.POP_SIZE = 1000  # maximum population size
+        xcs.POP_SIZE = pop_size  # maximum population size
         xcs.MAX_TRIALS = n_iter  # number of trials per fit()
         xcs.LOSS_FUNC = "mse"  # mean squared error
         xcs.SET_SUBSUMPTION = True
