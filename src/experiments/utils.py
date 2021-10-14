@@ -17,10 +17,7 @@ def log_json(a, label):
 
 
 def log_array(a, label):
-    f = tempfile.NamedTemporaryFile(prefix=f"{label}-", suffix=f".csv")
-    pd.DataFrame(a).to_csv(f.name)
-    mlflow.log_artifact(f.name)
-    f.close()
+    mlflow.log_text(pd.DataFrame(a).to_csv(), f"{label}.csv")
 
 
 def plot_prediction(X,
