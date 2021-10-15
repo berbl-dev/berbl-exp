@@ -190,15 +190,15 @@ def experiment(name,
         mlflow.log_metric("mse", mse, n_iter)
         mlflow.log_metric("r2-score", r2, n_iter)
 
-        mlflow.log_metric("size", xcs.pset_size())
+        mlflow.log_metric("size", estimator.xcs_.pset_size())
 
         # store the model, you never know when you need it
         f = tempfile.NamedTemporaryFile(prefix=f"model-", suffix=f".model")
-        xcs.save(f.name)
+        estimator.xcs_.save(f.name)
         mlflow.log_artifact(f.name)
         f.close()
 
-        pop = get_pop(xcs)
+        pop = get_pop(estimator.xcs_)
         utils.log_json(pop, "population")
 
         fig, ax = plot_prediction(X=X,
