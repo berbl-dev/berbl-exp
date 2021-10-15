@@ -14,8 +14,8 @@ from . import experiment
 @click.option("--standardize/--no-standardize", type=bool, default=True)
 def run_experiment(n_iter, pop_size, seed, show, sample_size, standardize):
 
-    X, y = generate(sample_size)
-    X_test, y_test_true = generate(1000, random_state=12345)
+    X, y = generate(sample_size, random_state=1)
+    X_test, y_test_true = generate(1000, random_state=2)
 
     X_denoised = np.linspace(0, 1, 100)[:, np.newaxis]
     _, y_denoised = generate(1000, noise=False, X=X_denoised)

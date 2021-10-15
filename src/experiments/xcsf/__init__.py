@@ -13,8 +13,10 @@ from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 from sklearn.utils.estimator_checks import check_estimator  # type: ignore
-from sklearn.utils.validation import (check_array,  # type: ignore
-                                      check_is_fitted, check_X_y)
+from sklearn.utils.validation import (
+    check_array,  # type: ignore
+    check_is_fitted,
+    check_X_y)
 
 
 def log_xcs_params(xcs):
@@ -196,11 +198,7 @@ def experiment(name,
         mlflow.log_artifact(f.name)
         f.close()
 
-        out = io.BytesIO()
-        with utils.stdout_redirector(out):
-            xcs.print_pset(True, True, True)
-
-        pop = parse_pop(out.getvalue().decode("utf-8"))
+        pop = get_pop(xcs)
         utils.log_json(pop, "population")
 
         fig, ax = plot_prediction(X=X,
@@ -215,11 +213,19 @@ def experiment(name,
             plt.show()
 
 
+def get_pop(xcs):
+    out = io.BytesIO()
+    with utils.stdout_redirector(out):
+        xcs.print_pset(True, True, True)
+
+    pop = parse_pop(out.getvalue().decode("utf-8"))
+
+
 def_params = {
     "OMP_NUM_THREADS": 8,  # not relevant for learning performance
     "POP_INIT": True,  # randomly initialize population
     "POP_SIZE": 1000,  # “10 times the expected number of rules”
-    "MAX_TRIALS": int(1e6),
+    "MAX_TRIALS": int(1e4),
     "PERF_TRIALS": 1000,  # not used, we evaluate manually
     "LOSS_FUNC": "mae",  # not used, we evaluate manually
     "HUBER_DELTA": 1,  # not used since LOSS_FUNC != "huber"
@@ -256,6 +262,10 @@ def_params = {
 
 
 class XCSF(BaseEstimator, RegressorMixin):
+    """
+    Almost a correct sklearn wrapper for ``xcsf.XCS``. For example, it can't yet
+    be pickled.
+    """
     def __init__(self, params, random_state=None):
         self.params = params
         self.random_state = random_state
@@ -316,7 +326,4 @@ class XCSF(BaseEstimator, RegressorMixin):
 
         X = check_array(X)
 
-        return xcs.predict(X)
-
-
-check_estimator(XCSF(def_params))
+        return self.xcsf_.predict(X)
