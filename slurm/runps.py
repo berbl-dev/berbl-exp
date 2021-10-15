@@ -59,7 +59,8 @@ def run_experiment(seed, data_seed, time, mem, experiment):
             f'srun nix-shell "{job_dir}/shell.nix" --command '
             f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
             f'--seed={seed} '
-            f'--data-seed={data_seed}"')
+            f'--data-seed={data_seed}" '
+            f'&')
 
     seeds = range(seed, 5)
     data_seeds = range(data_seed, 5)
