@@ -1,12 +1,12 @@
 import click  # type: ignore
 import mlflow  # type: ignore
-from experiments.utils import log_array
+from experiments.utils import log_array, log_json
 from sklearn.model_selection import ParameterGrid  # type: ignore
 from sklearn.model_selection import cross_validate  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
 from tasks.book.generated_function import generate
 
-from .. import XCSF
+from .. import XCSF, get_pop, log_xcs_params
 
 
 @click.command()
@@ -86,22 +86,27 @@ def run_experiment(seed, data_seed, show, sample_size, standardize):
                 y = scaler_y.fit_transform(y)
 
             estimator = XCSF(params=params, random_state=seed)
+            mlflow.log_params(params)
+
+            k = 5
+            scoring = [
+                "neg_mean_absolute_error", "r2", "neg_mean_squared_error"
+            ]
             scores = cross_validate(estimator,
                                     X,
                                     y.ravel(),
-                                    scoring=[
-                                        "neg_mean_absolute_error", "r2",
-                                        "neg_mean_squared_error"
-                                    ],
-                                    cv=5,
+                                    scoring=scoring,
+                                    cv=k,
                                     return_estimator=True)
 
-            mlflow.log_json(get_pop(estimator.xcs_), "population")
-            exit()
-
-            if standardize:
-                X = scaler_X.inverse_transform(X)
-                y = scaler_y.inverse_transform(y)
+            # Go over each CV result.
+            for i in range(k):
+                # Log each computed score.
+                for score in scoring:
+                    score = f"test_{score}"
+                    mlflow.log_metric(score, scores[score][i], i)
+                # Log final population.
+                log_json(get_pop(scores["estimator"][i].xcs_), "population")
 
 
 if __name__ == "__main__":

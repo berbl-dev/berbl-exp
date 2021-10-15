@@ -219,6 +219,7 @@ def get_pop(xcs):
         xcs.print_pset(True, True, True)
 
     pop = parse_pop(out.getvalue().decode("utf-8"))
+    return pop
 
 
 def_params = {
