@@ -64,6 +64,7 @@ def run_experiment(seed, data_seed, time, mem, experiment):
     seeds = range(seed, 5)
     data_seeds = range(data_seed, 5)
     jobs = [job(seed, data_seed) for seed in seeds for data_seed in data_seeds]
+    sbatch += "\n"
     sbatch += "\n".join(jobs)
 
     print(sbatch)
