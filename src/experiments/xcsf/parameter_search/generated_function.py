@@ -70,14 +70,14 @@ def run_experiment(seed, data_seed, show, sample_size, standardize):
     for params in param_grid:
         mlflow.set_experiment("xcsf.ps.generated_function")
         with mlflow.start_run() as run:
-            mlflow.log_param("seed", seed)
+            mlflow.log_param("xcs.seed", seed)
             mlflow.log_param("data.seed", data_seed)
             mlflow.log_param("data.size", sample_size)
 
             X, y = generate(sample_size, random_state=data_seed)
 
-            log_array(X, "X")
-            log_array(y, "y")
+            log_array(X, "data.X")
+            log_array(y, "data.y")
 
             if standardize:
                 scaler_X = StandardScaler()
@@ -86,7 +86,6 @@ def run_experiment(seed, data_seed, show, sample_size, standardize):
                 y = scaler_y.fit_transform(y)
 
             estimator = XCSF(params=params, random_state=seed)
-            mlflow.log_params(params)
 
             k = 5
             scoring = [
@@ -107,6 +106,7 @@ def run_experiment(seed, data_seed, show, sample_size, standardize):
                     mlflow.log_metric(score, scores[score][i], i)
                 # Log final population.
                 log_json(get_pop(scores["estimator"][i].xcs_), "population")
+                mlflow.log_metric("size", scores["estimator"][i].xcs_.pset_size())
 
 
 if __name__ == "__main__":
