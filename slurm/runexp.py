@@ -35,7 +35,7 @@ import click
               default=10,
               help="Number of repetitions to run.")
 @click.argument("experiment")
-def run_experiment(seed, time, reps, mem, experiment):
+def run_experiment(seed, data_seed, time, reps, mem, experiment):
     """
     Run EXPERIMENT on the cluster.
     """
