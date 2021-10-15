@@ -9,13 +9,14 @@ from . import experiment
 @click.option("-n", "--n_iter", type=click.IntRange(min=1), default=250)
 @click.option("-p", "--pop_size", type=click.IntRange(min=1), default=100)
 @click.option("-s", "--seed", type=click.IntRange(min=0), default=0)
+@click.option("--data-seed", type=click.IntRange(min=0), default=1)
 @click.option("--show/--no-show", type=bool, default=False)
 @click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
 @click.option("--standardize/--no-standardize", type=bool, default=True)
-def run_experiment(n_iter, pop_size, seed, show, sample_size, standardize):
+def run_experiment(n_iter, pop_size, seed, data_seed, show, sample_size, standardize):
 
-    X, y = generate(sample_size, random_state=1)
-    X_test, y_test_true = generate(1000, random_state=2)
+    X, y = generate(sample_size, random_state=data_seed)
+    X_test, y_test_true = generate(1000, random_state=data_seed)
 
     X_denoised = np.linspace(0, 1, 100)[:, np.newaxis]
     _, y_denoised = generate(1000, noise=False, X=X_denoised)

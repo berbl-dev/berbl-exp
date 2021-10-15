@@ -16,6 +16,10 @@ import click
               type=click.IntRange(min=0),
               default=0,
               help="Seed of the first repetition to run.")
+@click.option("--data-seed",
+              type=click.IntRange(min=0),
+              default=1,
+              help="Seed for generating the data.")
 @click.option("-t",
               "--time",
               type=click.IntRange(min=10),
@@ -56,7 +60,8 @@ def run_experiment(seed, time, reps, mem, experiment):
         f'#SBATCH --array=0-{reps - 1}',
         (f'nix-shell "{job_dir}/shell.nix" --command '
          f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
-         f'--seed=$(({seed} + $SLURM_ARRAY_TASK_ID))"')
+         f'--seed=$(({seed} + $SLURM_ARRAY_TASK_ID)) '
+         f'--data-seed=$(({data_seed} + $SLURM_ARRAY_TASK_ID))"')
     ])
     print(sbatch)
     print()
