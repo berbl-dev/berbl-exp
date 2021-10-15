@@ -295,8 +295,8 @@ class XCSF(BaseEstimator, RegressorMixin):
             "eta":
             0,  # disable gradient descent of centers towards matched input mean
         }
-        xcs.condition("hyperrectangle", args)
-        mlflow.log_param("xcs.condition", "hyperrectangle")
+        xcs.condition("ub_hyperrectangle", args)
+        mlflow.log_param("xcs.condition", "ub_hyperrectangle")
         mlflow.log_param("xcs.condition.args.min", args["min"])
         mlflow.log_param("xcs.condition.args.max", args["max"])
         mlflow.log_param("xcs.condition.args.spread-min", args["spread-min"])
@@ -317,7 +317,7 @@ class XCSF(BaseEstimator, RegressorMixin):
 
         xcs.fit(X, y, True)
 
-        self.xcsf_ = xcs
+        self.xcs_ = xcs
 
         return self
 
@@ -326,4 +326,4 @@ class XCSF(BaseEstimator, RegressorMixin):
 
         X = check_array(X)
 
-        return self.xcsf_.predict(X)
+        return self.xcs_.predict(X)

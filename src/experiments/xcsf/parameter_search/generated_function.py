@@ -1,10 +1,11 @@
 import click  # type: ignore
 import mlflow  # type: ignore
-import numpy  # type: ignore
+from experiments.utils import log_array
 from sklearn.model_selection import ParameterGrid  # type: ignore
 from sklearn.model_selection import cross_validate  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
 from tasks.book.generated_function import generate
+
 from .. import XCSF
 
 
@@ -67,35 +68,40 @@ def run_experiment(seed, data_seed, show, sample_size, standardize):
     })
 
     for params in param_grid:
+        mlflow.set_experiment("xcsf.ps.generated_function")
+        with mlflow.start_run() as run:
+            mlflow.log_param("seed", seed)
+            mlflow.log_param("data.seed", data_seed)
+            mlflow.log_param("data.size", sample_size)
 
-        mlflow.log_param("data_seed", data_seed)
+            X, y = generate(sample_size, random_state=data_seed)
 
-        X, y = generate(sample_size, random_state=data_seed)
+            log_array(X, "X")
+            log_array(y, "y")
 
-        if standardize:
-            scaler_X = StandardScaler()
-            scaler_y = StandardScaler()
-            X = scaler_X.fit_transform(X)
-            # X_test = scaler_X.transform(X_test)
-            y = scaler_y.fit_transform(y)
-            # y_test_true = scaler_y.transform(y_test_true)
+            if standardize:
+                scaler_X = StandardScaler()
+                scaler_y = StandardScaler()
+                X = scaler_X.fit_transform(X)
+                y = scaler_y.fit_transform(y)
 
-        estimator = XCSF(params=params, random_state=seed)
-        scores = cross_validate(estimator,
-                                X,
-                                y,
-                                scoring=[
-                                    "neg_mean_absolute_error", "r2",
-                                    "neg_mean_squared_error"
-                                ],
-                                cv=5,
-                                return_estimator=True)
+            estimator = XCSF(params=params, random_state=seed)
+            scores = cross_validate(estimator,
+                                    X,
+                                    y.ravel(),
+                                    scoring=[
+                                        "neg_mean_absolute_error", "r2",
+                                        "neg_mean_squared_error"
+                                    ],
+                                    cv=5,
+                                    return_estimator=True)
 
-        if standardize:
-            X = scaler_X.inverse_transform(X)
-            # X_test = scaler_X.inverse_transform(X_test)
-            y = scaler_y.inverse_transform(y)
-            # y_test = scaler_y.inverse_transform(y_test)
+            mlflow.log_json(get_pop(estimator.xcs_), "population")
+            exit()
+
+            if standardize:
+                X = scaler_X.inverse_transform(X)
+                y = scaler_y.inverse_transform(y)
 
 
 if __name__ == "__main__":
