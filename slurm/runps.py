@@ -29,8 +29,13 @@ import click
               type=click.IntRange(min=1),
               default=100,
               help="Slurm's --mem in megabytes, (default: 100).")
+@click.option("-r",
+              "--reps",
+              type=click.IntRange(min=1),
+              default=25,
+              help="Number of repetitions to run.")
 @click.argument("experiment")
-def run_experiment(seed, data_seed, time, mem, experiment):
+def run_experiment(seed, data_seed, time, mem, reps, experiment):
     """
     Run parameter study EXPERIMENT on the cluster.
     """
@@ -52,24 +57,12 @@ def run_experiment(seed, data_seed, time, mem, experiment):
         f'#SBATCH --mem={mem}',
         f'#SBATCH --partition=cpu',
         f'#SBATCH --output={job_dir}/output/output-%A-%a.txt',
+        f'#SBATCH --array=0-{reps - 1}',
+        (f'srun nix-shell "{job_dir}/shell.nix" --command '
+         f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
+         f'--seed=$(({seed} + {reps} / $SLURM_ARRAY_TASK_ID)) '
+         f'--data-seed=$(({data_seed} + {reps} % $SLURM_ARRAY_TASK_ID))"')
     ])
-
-    def job(seed, data_seed):
-        return (
-            f'srun nix-shell "{job_dir}/shell.nix" --command '
-            f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
-            f'--seed={seed} '
-            f'--data-seed={data_seed}" '
-            f'&')
-
-    seeds = range(seed, 5)
-    data_seeds = range(data_seed, 5)
-    jobs = [job(seed, data_seed) for seed in seeds for data_seed in data_seeds]
-    sbatch += "\n"
-    sbatch += "\n".join(jobs)
-    sbatch += "\n"
-    sbatch += "wait"
-
     print(sbatch)
     print()
 
