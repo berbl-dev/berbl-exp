@@ -84,7 +84,7 @@ def run_experiment(seed, data_seed, show, sample_size, standardize):
 
             estimator = XCSF(params=params, random_state=seed)
 
-            k = 5
+            k = 10
             scoring = [
                 "neg_mean_absolute_error", "r2", "neg_mean_squared_error"
             ]
