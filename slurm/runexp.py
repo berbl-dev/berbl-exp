@@ -10,6 +10,9 @@ import tempfile
 import click
 
 
+node = "oc-compute03"
+
+
 @click.command()
 @click.option("-s",
               "--seed",
@@ -41,7 +44,7 @@ def run_experiment(seed, data_seed, time, reps, mem, experiment):
     """
     experiment = f"experiments/{experiment}"
 
-    job_dir = "/data/oc-compute02/hoffmada/prolcs-reproducibility-experiments"
+    job_dir = f"/data/{node}/hoffmada/prolcs-reproducibility-experiments"
 
     path = pathlib.Path(job_dir, "src", f"{experiment}.py")
     if not path.is_file():
@@ -53,7 +56,7 @@ def run_experiment(seed, data_seed, time, reps, mem, experiment):
 
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
-        f'#SBATCH --nodelist=oc-compute03',
+        f'#SBATCH --nodelist={node}',
         f'#SBATCH --time={time}',
         f'#SBATCH --mem={mem}',
         f'#SBATCH --partition=cpu',
