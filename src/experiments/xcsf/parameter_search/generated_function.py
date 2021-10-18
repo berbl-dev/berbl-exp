@@ -14,14 +14,14 @@ param_grid = ParameterGrid({
     "OMP_NUM_THREADS": [8],  # not relevant for learning performance
     "POP_INIT": [True],  # randomly initialize population
     "POP_SIZE": [30, 50, 100, 200],  # “10 times the expected number of rules”
-    "MAX_TRIALS": [int(1e6)],
+    "MAX_TRIALS": [int(2e5)],
     "PERF_TRIALS": [1000],  # irrelevant, we evaluate manually
     "LOSS_FUNC": ["mae"],  # irrelevant, we evaluate manually
     "HUBER_DELTA": [1],  # irrelevant since LOSS_FUNC != "huber"
     "E0": [1e-3, 1e-2, 5e-2, 1e-1],  # “if noise, use lower beta and higher e0”
     "ALPHA": [1],  # typical value in literature (stein2019, stalph2012c)
-    "NU": [4, 5, 7],
-    "BETA": [0.001, 0.005, 0.01, 0.1],  # lower value required if high noise
+    "NU": [5], # typical value in literature
+    "BETA": [0.001, 0.005, 0.01],  # lower value required if high noise
     "DELTA":
     [0.1
      ],  # not sensitive, typical value in literature (stein2019, stalph2012c)
