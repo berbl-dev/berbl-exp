@@ -53,6 +53,7 @@ def run_experiment(seed, data_seed, time, reps, mem, experiment):
 
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
+        f'#SBATCH --nodelist=oc-compute03',
         f'#SBATCH --time={time}',
         f'#SBATCH --mem={mem}',
         f'#SBATCH --partition=cpu',
