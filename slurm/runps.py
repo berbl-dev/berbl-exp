@@ -35,10 +35,15 @@ node = "oc-compute03"
 @click.option("-r",
               "--reps",
               type=click.IntRange(min=1),
-              default=25,
-              help="Number of repetitions to run.")
+              default=5,
+              help="Number of repetitions to run (number of algorithm seeds).")
+@click.option("-d",
+              "--data-sets",
+              type=click.IntRange(min=1),
+              default=5,
+              help="Number of data sets to generate.")
 @click.argument("experiment")
-def run_experiment(seed, data_seed, time, mem, reps, experiment):
+def run_experiment(seed, data_seed, time, mem, reps, data_sets, experiment):
     """
     Run parameter study EXPERIMENT on the cluster.
     """
@@ -54,6 +59,8 @@ def run_experiment(seed, data_seed, time, mem, reps, experiment):
     # relative imports).
     experiment = experiment.replace("/", ".")
 
+    njobs = reps * data_sets
+
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
         f'#SBATCH --nodelist={node}',
@@ -61,11 +68,11 @@ def run_experiment(seed, data_seed, time, mem, reps, experiment):
         f'#SBATCH --mem={mem}',
         f'#SBATCH --partition=cpu',
         f'#SBATCH --output={job_dir}/output/output-%A-%a.txt',
-        f'#SBATCH --array=0-{reps - 1}',
+        f'#SBATCH --array=0-{njobs - 1}',
         (f'srun nix-shell "{job_dir}/shell.nix" --command '
          f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' python -m {experiment} '
-         f'--seed=$(({seed} + {reps} / $SLURM_ARRAY_TASK_ID)) '
-         f'--data-seed=$(({data_seed} + {reps} % $SLURM_ARRAY_TASK_ID))"')
+         f'--seed=$(({seed} + $SLURM_ARRAY_TASK_ID / {data_sets})) '
+         f'--data-seed=$(({data_seed} + $SLURM_ARRAY_TASK_ID % {data_sets}))"')
     ])
     print(sbatch)
     print()
