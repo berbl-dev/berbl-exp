@@ -10,7 +10,7 @@ from .. import XCSF, get_pop, log_xcs_params
 
 # Mainly based on (Urbanowicz and Browne, 2017; Stalph, Rubinsztajn et al.,
 # 2012), unless otherwise noted.
-param_grid = ParameterGrid({
+param_dict = {
     "OMP_NUM_THREADS": [8],  # not relevant for learning performance
     "POP_INIT": [True],  # randomly initialize population
     "POP_SIZE": [30, 50, 100, 200],  # “10 times the expected number of rules”
@@ -53,7 +53,10 @@ param_grid = ParameterGrid({
     "FIT_REDUC": [0.1],  # e.g. stein2019
     "EA_SUBSUMPTION": [False],  # seldomly used, set subsumption should suffice
     "EA_PRED_RESET": [False],
-})
+}
+
+
+param_grid = ParameterGrid(param_dict)
 
 
 @click.command()
