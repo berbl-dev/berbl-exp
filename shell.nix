@@ -9,6 +9,15 @@ let
     config.packageOverrides = super: {
       python3 = super.python3.override {
         packageOverrides = python-self: python-super: {
+          pandas = python-super.pandas.overrideAttrs (attrs: rec {
+            pname = "pandas";
+            version = "1.3.4";
+
+            src = python-super.fetchPypi {
+              inherit pname version;
+              sha256 = "1z3gm521wpm3j13rwhlb4f2x0645zvxkgxij37i3imdpy39iiam2";
+            };
+          });
           baycomp = python-super.buildPythonPackage rec {
             pname = "baycomp";
             version = "unstable-8c4a22";
