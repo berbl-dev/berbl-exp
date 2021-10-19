@@ -9,6 +9,28 @@ let
     config.packageOverrides = super: {
       python3 = super.python3.override {
         packageOverrides = python-self: python-super: {
+          baycomp = python-super.buildPythonPackage rec {
+            pname = "baycomp";
+            version = "unstable-8c4a22";
+
+            #
+            src = super.fetchFromGitHub {
+              owner = "janezd";
+              repo = pname;
+              rev = "8c4a2253e875fc1eae2b00ab9da77c14940885e2";
+              sha256 =
+                "sha256:1yan1kk72yci55g2k3zala2s3711bvw8r2zlq1xh0vv1pdzk2c8k";
+            };
+
+            propagatedBuildInputs = with python-super; [ matplotlib scipy ];
+
+            meta = with super.lib; {
+              homepage = "https://github.com/janezd/baycomp";
+              description = "A library for Bayesian comparison of classifiers";
+              license = licenses.mit;
+              maintainers = with maintainers; [ dpaetzel ];
+            };
+          };
           pyparsing3 = python-super.buildPythonPackage rec {
             # Copied from nixpkgs and slightly adjusted for 3.0.0rc2.
             pname = "pyparsing";
@@ -92,6 +114,7 @@ let
   };
   env = pkgs.python3.withPackages (ps:
     with ps; [
+      baycomp
       click
       deap
       ipython
@@ -105,10 +128,4 @@ let
       seaborn
       xcsf
     ]);
-in
-pkgs.mkShell {
-  packages = [
-    env
-    pkgs.python3Packages.mlflowPatched
-  ];
-}
+in pkgs.mkShell { packages = [ env pkgs.python3Packages.mlflowPatched ]; }
