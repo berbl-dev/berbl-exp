@@ -121,20 +121,31 @@ let
       };
     };
   };
-  env = pkgs.python3.withPackages (ps:
-    with ps; [
-      baycomp
-      click
-      deap
-      ipython
-      mlflowPatched
-      numpy
-      pandas
-      prolcs
-      pyparsing3
-      scipy
-      scikitlearn
-      seaborn
-      xcsf
-    ]);
-in pkgs.mkShell { packages = [ env pkgs.python3Packages.mlflowPatched ]; }
+in pkgs.mkShell rec {
+  name = "impure";
+  venvDir = "./.venv";
+  buildInputs = with pkgs; with python3Packages; [
+    venvShellHook
+    python
+    baycomp
+    click
+    deap
+    ipython
+    mlflowPatched
+    numpy
+    pandas
+    prolcs
+    pyparsing3
+    scipy
+    scikitlearn
+    seaborn
+    xcsf
+  ];
+  postVenvCreation = ''
+    unset SOURCE_DATE_EPOCH
+    pip install pystan==2.19.1.1
+  '';
+  postShellHook = ''
+    export LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH
+  '';
+}
