@@ -11,13 +11,14 @@ from .. import experiment
 @click.command()
 @click.option("-n", "--n_iter", type=click.IntRange(min=1), default=250)
 @click.option("-s", "--seed", type=click.IntRange(min=0), default=0)
+@click.option("--data-seed", type=click.IntRange(min=0), default=1)
 @click.option("--show/--no-show", type=bool, default=False)
 @click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
 @click.option("--standardize/--no-standardize", type=bool, default=False)
-def run_experiment(n_iter, seed, show, sample_size, standardize):
+def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
 
     X, y = generate(sample_size)
-    X_test, y_test_true = generate(1000, random_state=12345)
+    X_test, y_test_true = generate(1000, random_state=data_seed)
 
     # generate equidistant, denoised data as well (only for visual reference)
     X_denoised = np.linspace(0, 1, 100)[:, np.newaxis]
