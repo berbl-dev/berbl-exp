@@ -86,7 +86,9 @@ def experiment(name,
 
         random_state = check_random_state(seed)
 
-        estimator = GADrugowitsch(Toolbox(matchcls, gaparams, random_state=random_state),
+        estimator = GADrugowitsch(Toolbox(matchcls,
+                                          gaparams,
+                                          random_state=random_state),
                                   n_iter=n_iter,
                                   random_state=random_state)
         estimator = estimator.fit(X, y)
