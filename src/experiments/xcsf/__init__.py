@@ -7,7 +7,7 @@ import mlflow  # type: ignore
 import pyparsing as pp  # type: ignore
 import xcsf.xcsf as xcsf  # type: ignore
 from experiments.utils import log_array, plot_prediction, save_plot
-from prolcs.utils import randseed
+from berbl.utils import randseed
 from sklearn import metrics  # type: ignore
 from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore

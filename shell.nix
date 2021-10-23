@@ -22,14 +22,14 @@ let
             pname = "baycomp";
             version = "unstable-8c4a22";
 
-            #
-            src = super.fetchFromGitHub {
-              owner = "janezd";
-              repo = pname;
-              rev = "8c4a2253e875fc1eae2b00ab9da77c14940885e2";
-              sha256 =
-                "sha256:1yan1kk72yci55g2k3zala2s3711bvw8r2zlq1xh0vv1pdzk2c8k";
-            };
+            # src = super.fetchFromGitHub {
+            #   owner = "janezd";
+            #   repo = pname;
+            #   rev = "8c4a2253e875fc1eae2b00ab9da77c14940885e2";
+            #   sha256 =
+            #     "sha256:1yan1kk72yci55g2k3zala2s3711bvw8r2zlq1xh0vv1pdzk2c8k";
+            # };
+            src = /home/david/baycomp;
 
             propagatedBuildInputs = with python-super; [ matplotlib scipy ];
 
@@ -56,9 +56,9 @@ let
             # https://github.com/pyparsing/pyparsing/blob/847af590154743bae61a32c3dc1a6c2a19009f42/tox.ini#L6
             checkInputs = [ python-super.coverage ];
             checkPhase = ''
-                # coverage run --branch simple_unit_tests.py
-                # coverage run --branch unitTests.py
-              '';
+              # coverage run --branch simple_unit_tests.py
+              # coverage run --branch unitTests.py
+            '';
 
             meta = with super.lib; {
               homepage = "https://github.com/pyparsing/pyparsing";
@@ -107,8 +107,12 @@ let
               ]);
             meta.broken = false;
           });
-          prolcs = pkgs.callPackage ./prolcs/default.nix {
-            buildPythonPackage = pkgs.python3Packages.buildPythonPackage;
+          # berbl = pkgs.callPackage ./berbl/default.nix {
+          berbl = with pkgs; with python-super; import ../berbl/default.nix {
+            inherit lib deap numpy scipy scikitlearn hypothesis pytest;
+            pandas = python-self.pandas;
+            mlflow = python-self.mlflowPatched;
+            buildPythonPackage = buildPythonPackage;
           };
           xcsf = with super.pkgs;
             callPackage ./xcsf/default.nix {
@@ -124,22 +128,23 @@ let
 in pkgs.mkShell rec {
   name = "impure";
   venvDir = "./.venv";
-  buildInputs = with pkgs; with python3Packages; [
-    venvShellHook
-    python
-    baycomp
-    click
-    deap
-    ipython
-    mlflowPatched
-    numpy
-    pandas
-    prolcs
-    pyparsing3
-    scipy
-    scikitlearn
-    seaborn
-    xcsf
+  packages = with pkgs; [
+    python3Packages.venvShellHook
+    (python3.withPackages (ps: with ps; [
+      baycomp
+      click
+      deap
+      ipython
+      mlflowPatched
+      numpy
+      pandas
+      berbl
+      pyparsing3
+      scipy
+      scikitlearn
+      seaborn
+      xcsf
+    ]))
   ];
   postVenvCreation = ''
     unset SOURCE_DATE_EPOCH

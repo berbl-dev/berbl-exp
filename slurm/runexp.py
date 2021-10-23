@@ -44,7 +44,7 @@ def run_experiment(seed, data_seed, time, reps, mem, experiment):
     """
     experiment = f"experiments/{experiment}"
 
-    job_dir = f"/data/{node}/hoffmada/prolcs-reproducibility-experiments"
+    job_dir = f"/data/{node}/hoffmada/berbl-reproducibility-experiments"
 
     path = pathlib.Path(job_dir, "src", f"{experiment}.py")
     if not path.is_file():

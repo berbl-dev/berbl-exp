@@ -1,8 +1,7 @@
 import numpy as np  # type: ignore
-from prolcs.common import check_phi, matching_matrix
-from prolcs.literal import mixing
-from prolcs.match.radial1d_drugowitsch import RadialMatch1D
-from prolcs.utils import add_bias
+from berbl.literal import mixing
+from berbl.match.radial1d_drugowitsch import RadialMatch1D
+from berbl.utils import add_bias, check_phi, matching_matrix
 from sklearn.utils import check_random_state  # type: ignore
 
 # The individual used in function generation.

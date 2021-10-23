@@ -3,7 +3,7 @@
 import click
 import numpy as np  # type: ignore
 from tasks.book.generated_function import generate
-from prolcs.match.radial1d_drugowitsch import RadialMatch1D
+from berbl.match.radial1d_drugowitsch import RadialMatch1D
 
 from . import experiment
 

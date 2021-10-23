@@ -1,7 +1,7 @@
 import click
 import numpy as np  # type: ignore
 from tasks.book.noisy_sinus import f, generate
-from prolcs.match.softinterval1d_drugowitsch import SoftInterval1D
+from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 
 from . import experiment
 
