@@ -1,11 +1,9 @@
-# TODO Why do I only get a fitness of ~52 instead of Drugowitschs >100?
-
 import click
 import numpy as np  # type: ignore
-from tasks.book.generated_function import generate
+from tasks.book.noisy_sinus import f, generate
 from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 
-from .. import experiment
+from ... import experiment
 
 
 @click.command()
@@ -21,15 +19,15 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
     X_test, y_test_true = generate(1000, random_state=data_seed)
 
     # generate equidistant, denoised data as well (only for visual reference)
-    X_denoised = np.linspace(0, 1, 100)[:, np.newaxis]
-    _, y_denoised = generate(1000, noise=False, X=X_denoised)
+    X_denoised = np.linspace(-1, 1, 100)[:, np.newaxis]
+    y_denoised = f(X_denoised, noise_var=0)
 
     gaparams = {
         "n": 8,
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment("lit.book.int.generated_function",
+    experiment("lit.book.noisy_sinus",
                SoftInterval1D,
                gaparams,
                X,

@@ -3,9 +3,9 @@
 import click
 import numpy as np  # type: ignore
 from tasks.book.generated_function import generate
-from berbl.match.radial1d_drugowitsch import RadialMatch1D
+from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 
-from . import experiment
+from .... import experiment
 
 
 @click.command()
@@ -29,8 +29,8 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment("lit.book.generated_function",
-               RadialMatch1D,
+    experiment("lit.book.int.generated_function",
+               SoftInterval1D,
                gaparams,
                X,
                y,

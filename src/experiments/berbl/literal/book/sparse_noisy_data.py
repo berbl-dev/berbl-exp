@@ -1,9 +1,9 @@
 import click
 import numpy as np  # type: ignore
-from tasks.book.variable_noise import f, generate
-from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
+from tasks.book.sparse_noisy_data import f, generate
+from berbl.match.radial1d_drugowitsch import RadialMatch1D
 
-from . import experiment
+from ... import experiment
 
 
 @click.command()
@@ -19,16 +19,16 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
     X_test, y_test_true = generate(1000, random_state=data_seed)
 
     # generate equidistant, denoised data as well (only for visual reference)
-    X_denoised = np.linspace(-1, 1, 100)[:, np.newaxis]
-    y_denoised = f(X_denoised, noise_vars=(0, 0))
+    X_denoised = np.linspace(0, 4, 100)[:, np.newaxis]
+    y_denoised = f(X_denoised, noise_var=0)
 
     gaparams = {
-        "n": 8,
+        "n": 4,
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment("lit.book.variable_noise",
-               SoftInterval1D,
+    experiment("lit.book.sparse_noisy_data",
+               RadialMatch1D,
                gaparams,
                X,
                y,

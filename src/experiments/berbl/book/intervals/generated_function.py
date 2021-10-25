@@ -1,9 +1,11 @@
+# TODO Why do I only get a fitness of ~52 instead of Drugowitschs >100?
+
 import click
 import numpy as np  # type: ignore
-from tasks.book.sparse_noisy_data import f, generate
+from tasks.book.generated_function import generate
 from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 
-from .. import experiment
+from ... import experiment
 
 
 @click.command()
@@ -11,7 +13,7 @@ from .. import experiment
 @click.option("-s", "--seed", type=click.IntRange(min=0), default=0)
 @click.option("--data-seed", type=click.IntRange(min=0), default=1)
 @click.option("--show/--no-show", type=bool, default=False)
-@click.option("-d", "--sample-size", type=click.IntRange(min=1), default=200)
+@click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
 @click.option("--standardize/--no-standardize", type=bool, default=False)
 def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
 
@@ -19,15 +21,15 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
     X_test, y_test_true = generate(1000, random_state=data_seed)
 
     # generate equidistant, denoised data as well (only for visual reference)
-    X_denoised = np.linspace(0, 4, 100)[:, np.newaxis]
-    y_denoised = f(X_denoised, noise_var=0)
+    X_denoised = np.linspace(0, 1, 100)[:, np.newaxis]
+    _, y_denoised = generate(1000, noise=False, X=X_denoised)
 
     gaparams = {
-        "n": 4,
+        "n": 8,
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment("lit.book.int.sparse_noisy_data",
+    experiment("lit.book.int.generated_function",
                SoftInterval1D,
                gaparams,
                X,
@@ -40,7 +42,7 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
                seed,
                show,
                sample_size,
-               literal=True,
+               literal=False,
                standardize=standardize)
 
 

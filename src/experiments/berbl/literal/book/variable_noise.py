@@ -1,9 +1,9 @@
 import click
 import numpy as np  # type: ignore
-from tasks.book.noisy_sinus import f, generate
+from tasks.book.variable_noise import f, generate
 from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 
-from . import experiment
+from ... import experiment
 
 
 @click.command()
@@ -11,7 +11,7 @@ from . import experiment
 @click.option("-s", "--seed", type=click.IntRange(min=0), default=0)
 @click.option("--data-seed", type=click.IntRange(min=0), default=1)
 @click.option("--show/--no-show", type=bool, default=False)
-@click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
+@click.option("-d", "--sample-size", type=click.IntRange(min=1), default=200)
 @click.option("--standardize/--no-standardize", type=bool, default=False)
 def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
 
@@ -20,14 +20,14 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
 
     # generate equidistant, denoised data as well (only for visual reference)
     X_denoised = np.linspace(-1, 1, 100)[:, np.newaxis]
-    y_denoised = f(X_denoised, noise_var=0)
+    y_denoised = f(X_denoised, noise_vars=(0, 0))
 
     gaparams = {
         "n": 8,
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment("lit.book.noisy_sinus",
+    experiment("lit.book.variable_noise",
                SoftInterval1D,
                gaparams,
                X,

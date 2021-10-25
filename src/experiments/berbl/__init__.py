@@ -33,8 +33,8 @@ def experiment(name,
         mlflow.log_params(HParams().__dict__)
         mlflow.log_param("seed", seed)
         mlflow.log_param("train.size", sample_size)
-        mlflow.log_params("literal", literal)
-        mlflow.log_params("standardize", standardize)
+        mlflow.log_param("literal", literal)
+        mlflow.log_param("standardize", standardize)
 
         log_array(X, "X")
         log_array(y, "y")
