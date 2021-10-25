@@ -7,7 +7,9 @@ from berbl.literal.hyperparams import HParams
 from berbl.search.operators.drugowitsch import DefaultToolbox
 from experiments.utils import log_array, plot_prediction, save_plot
 from sklearn import metrics  # type: ignore
-from sklearn.preprocessing import StandardScaler
+from sklearn.compose import TransformedTargetRegressor  # type: ignore
+from sklearn.pipeline import make_pipeline  # type: ignore
+from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
 
@@ -38,16 +40,6 @@ def experiment(name,
         log_array(X_denoised, "X_denoised")
         log_array(y_denoised, "y_denoised")
 
-        # TODO Use sklearn.pipeline.Pipeline here
-
-        if standardize:
-            scaler_X = StandardScaler()
-            scaler_y = StandardScaler()
-            X = scaler_X.fit_transform(X)
-            X_test = scaler_X.transform(X_test)
-            y = scaler_y.fit_transform(y)
-            y_test_true = scaler_y.transform(y_test_true)
-
         random_state = check_random_state(seed)
 
         toolbox = DefaultToolbox(
@@ -61,6 +53,13 @@ def experiment(name,
             random_state=random_state)
 
         estimator = BERBL(toolbox, search="drugowitsch", n_iter=n_iter)
+
+        if standardize:
+            estimator = make_pipeline(
+                StandardScaler(),
+                TransformedTargetRegressor(regressor=estimator,
+                                           transformer=StandardScaler()))
+
         estimator = estimator.fit(X, y)
 
         # make predictions for test data
@@ -68,14 +67,6 @@ def experiment(name,
 
         # get unmixed classifier predictions
         y_cls = estimator.predicts(X)
-
-        if standardize:
-            X = scaler_X.inverse_transform(X)
-            X_test = scaler_X.inverse_transform(X_test)
-            y = scaler_y.inverse_transform(y)
-            y_test = scaler_y.inverse_transform(y_test)
-            var = scaler_y.scale_**2 * var
-            y_cls = scaler_y.inverse_transform(y_cls)
 
         log_array(y_test, "y_test")
         log_array(var, "var")
