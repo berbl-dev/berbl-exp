@@ -22,14 +22,13 @@ let
             pname = "baycomp";
             version = "unstable-8c4a22";
 
-            # src = super.fetchFromGitHub {
-            #   owner = "janezd";
-            #   repo = pname;
-            #   rev = "8c4a2253e875fc1eae2b00ab9da77c14940885e2";
-            #   sha256 =
-            #     "sha256:1yan1kk72yci55g2k3zala2s3711bvw8r2zlq1xh0vv1pdzk2c8k";
-            # };
-            src = /home/david/baycomp;
+            src = super.fetchFromGitHub {
+              owner = "janezd";
+              repo = pname;
+              rev = "8c4a2253e875fc1eae2b00ab9da77c14940885e2";
+              sha256 =
+                "sha256:1yan1kk72yci55g2k3zala2s3711bvw8r2zlq1xh0vv1pdzk2c8k";
+            };
 
             propagatedBuildInputs = with python-super; [ matplotlib scipy ];
 
