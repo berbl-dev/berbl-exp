@@ -107,8 +107,7 @@ let
               ]);
             meta.broken = false;
           });
-          # berbl = pkgs.callPackage ./berbl/default.nix {
-          berbl = with pkgs; with python-super; import ../berbl/default.nix {
+          berbl = with pkgs; with python-super; pkgs.callPackage ./berbl/default.nix {
             inherit lib deap numpy scipy scikitlearn hypothesis pytest;
             pandas = python-self.pandas;
             mlflow = python-self.mlflowPatched;
