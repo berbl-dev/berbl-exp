@@ -9,7 +9,7 @@ from . import experiment
 
 
 @click.command()
-@click.option("-n", "--n_iter", type=click.IntRange(min=1), default=250)
+@click.option("-n", "--n-iter", type=click.IntRange(min=1), default=250)
 @click.option("-s", "--seed", type=click.IntRange(min=0), default=0)
 @click.option("--data-seed", type=click.IntRange(min=0), default=1)
 @click.option("--show/--no-show", type=bool, default=False)
