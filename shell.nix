@@ -123,12 +123,8 @@ let
       };
     };
   };
-in pkgs.mkShell rec {
-  name = "impure";
-  venvDir = "./.venv";
-  packages = with pkgs; [
-    python3Packages.venvShellHook
-    (python3.withPackages (ps: with ps; [
+python =
+    (pkgs.python3.withPackages (ps: with ps; [
       baycomp
       click
       deap
@@ -142,7 +138,12 @@ in pkgs.mkShell rec {
       scikitlearn
       seaborn
       xcsf
-    ]))
+    ]));
+in pkgs.mkShell rec {
+  venvDir = ".venv";
+  packages = with pkgs; [
+    python3Packages.venvShellHook
+    python
   ];
   postVenvCreation = ''
     unset SOURCE_DATE_EPOCH
@@ -150,5 +151,6 @@ in pkgs.mkShell rec {
   '';
   postShellHook = ''
     export LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH
+    export PYTHONPATH=$PWD/${venvDir}/${python.sitePackages}/:${python}/${python.sitePackages}:$PYTHONPATH
   '';
 }
