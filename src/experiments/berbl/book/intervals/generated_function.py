@@ -29,7 +29,7 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
         "p": 0.5,
         "tournsize": 5,
     }
-    experiment("lit.book.int.generated_function",
+    experiment("book.int.generated_function",
                SoftInterval1D,
                gaparams,
                X,
