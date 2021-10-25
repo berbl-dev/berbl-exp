@@ -40,6 +40,7 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
                seed,
                show,
                sample_size,
+               literal=True,
                standardize=standardize)
 
 

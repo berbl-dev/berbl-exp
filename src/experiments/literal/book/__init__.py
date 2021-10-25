@@ -26,12 +26,15 @@ def experiment(name,
                seed,
                show,
                sample_size,
+               literal=False,
                standardize=False):
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
         mlflow.log_params(HParams().__dict__)
         mlflow.log_param("seed", seed)
         mlflow.log_param("train.size", sample_size)
+        mlflow.log_params("literal", literal)
+        mlflow.log_params("standardize", standardize)
 
         log_array(X, "X")
         log_array(y, "y")
@@ -48,7 +51,7 @@ def experiment(name,
             n=gaparams["n"],
             p=gaparams["p"],
             tournsize=gaparams["tournsize"],
-            literal=True,
+            literal=literal,
             fit_mixing="laplace",
             random_state=random_state)
 
