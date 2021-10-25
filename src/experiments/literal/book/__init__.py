@@ -84,15 +84,15 @@ def experiment(name,
         # two additional statistics to maybe better gauge solution performance
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
-        mlflow.log_metric("elitist.size", estimator.size_[0], n_iter)
-        mlflow.log_metric("elitist.p_M_D", estimator.p_M_D_[0], n_iter)
+        mlflow.log_metric("elitist.size", estimator.search_.size_[0], n_iter)
+        mlflow.log_metric("elitist.p_M_D", estimator.search_.p_M_D_[0], n_iter)
         mlflow.log_metric("elitist.mse", mse, n_iter)
         mlflow.log_metric("elitist.r2-score", r2, n_iter)
 
-        # store the model, you never know when you need it
-        model_file = f"models/Model {seed}.joblib"
-        jl.dump(estimator.frozen(), model_file)
-        mlflow.log_artifact(model_file)
+        # TODO Reimplement copying properly
+        # model_file = f"models/Model {seed}.joblib"
+        # jl.dump(estimator, model_file)
+        # mlflow.log_artifact(model_file)
 
         fig, ax = plot_prediction(X=X,
                                   y=y,
@@ -103,7 +103,8 @@ def experiment(name,
                                   y_denoised=y_denoised)
 
         plot_cls(X=X, y=y_cls, ax=ax)
-        add_title(ax, estimator.size_[0], estimator.p_M_D_[0], mse, r2)
+        add_title(ax, estimator.search_.size_[0], estimator.search_.p_M_D_[0],
+                  mse, r2)
         save_plot(fig, seed)
 
         if show:

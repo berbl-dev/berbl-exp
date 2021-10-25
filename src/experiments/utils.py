@@ -43,7 +43,7 @@ def plot_prediction(X,
     y_test_ = y_test.ravel()[perm]
     ax.plot(X_test_, y_test_, "b-")
 
-    if var:
+    if var is not None:
         var_ = var.ravel()[perm]
         std = np.sqrt(var_)
         ax.plot(X_test_, y_test_ - std, "b--", linewidth=0.5)
