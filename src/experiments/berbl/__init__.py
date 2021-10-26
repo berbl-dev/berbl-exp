@@ -27,7 +27,8 @@ def experiment(name,
                show,
                sample_size,
                literal=False,
-               standardize=False):
+               standardize=False,
+               fit_mixing="laplace"):
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
         mlflow.log_params(HParams().__dict__)
@@ -35,6 +36,7 @@ def experiment(name,
         mlflow.log_param("train.size", sample_size)
         mlflow.log_param("literal", literal)
         mlflow.log_param("standardize", standardize)
+        mlflow.log_param("fit_mixing", fit_mixing)
 
         log_array(X, "X")
         log_array(y, "y")
@@ -52,7 +54,7 @@ def experiment(name,
             p=gaparams["p"],
             tournsize=gaparams["tournsize"],
             literal=literal,
-            fit_mixing="laplace",
+            fit_mixing=fit_mixing,
             random_state=random_state)
 
         estimator = BERBL(toolbox, search="drugowitsch", n_iter=n_iter)

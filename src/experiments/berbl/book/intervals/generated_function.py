@@ -15,7 +15,8 @@ from ... import experiment
 @click.option("--show/--no-show", type=bool, default=False)
 @click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
 @click.option("--standardize/--no-standardize", type=bool, default=False)
-def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
+@click.option("--fit-mix", type=str, default="laplace")
+def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize, fit_mix):
 
     X, y = generate(sample_size)
     X_test, y_test_true = generate(1000, random_state=data_seed)
@@ -43,7 +44,8 @@ def run_experiment(n_iter, seed, data_seed, show, sample_size, standardize):
                show,
                sample_size,
                literal=False,
-               standardize=standardize)
+               standardize=standardize,
+               fit_mixing=fit_mix)
 
 
 if __name__ == "__main__":
