@@ -106,12 +106,16 @@ let
               ]);
             meta.broken = false;
           });
-          berbl = with pkgs; with python-super; pkgs.callPackage ./berbl/default.nix {
-            inherit lib deap numpy scipy scikitlearn hypothesis pytest;
-            pandas = python-self.pandas;
-            mlflow = python-self.mlflowPatched;
-            buildPythonPackage = buildPythonPackage;
-          };
+          # berbl = with pkgs; with python-super; pkgs.callPackage ./berbl/default.nix {
+          berbl = with pkgs;
+            with python-super;
+            import ./berbl/default.nix {
+              inherit lib deap numpy numpydoc scipy scikitlearn sphinx
+                hypothesis pytest;
+              pandas = python-self.pandas;
+              mlflow = python-self.mlflowPatched;
+              buildPythonPackage = buildPythonPackage;
+            };
           xcsf = with super.pkgs;
             callPackage ./xcsf/default.nix {
               inherit lib stdenv fetchgit cmake;
@@ -123,8 +127,8 @@ let
       };
     };
   };
-python =
-    (pkgs.python3.withPackages (ps: with ps; [
+  python = (pkgs.python3.withPackages (ps:
+    with ps; [
       baycomp
       click
       deap
