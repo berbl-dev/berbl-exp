@@ -131,24 +131,26 @@ def parse_pop(s):
     return res
 
 
-def experiment(name,
-               X,
-               y,
-               X_test,
-               y_test_true,
-               X_denoised,
-               y_denoised,
-               n_iter,
-               pop_size,
-               seed,
-               show,
-               sample_size,
-               params=None,
-               standardize=False):
+def run_experiment(name,
+                   data,
+                   n_iter,
+                   pop_size,
+                   seed,
+                   show,
+                   sample_size,
+                   params=None,
+                   standardize=False):
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
         mlflow.log_param("seed", seed)
         mlflow.log_param("train.size", sample_size)
+
+        X = data["X"]
+        y = data["y"]
+        X_test = data["X_test"]
+        y_test_true = data["y_test_true"]
+        X_denoised = data["X_denoised"]
+        y_denoised = data["y_denoised"]
 
         log_array(X, "X")
         log_array(y, "y")

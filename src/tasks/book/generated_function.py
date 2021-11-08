@@ -76,3 +76,21 @@ def generate(n: int = 300,
 
     # Return the non-augmented data points.
     return X, y
+
+def data(sample_size, data_seed):
+
+    X, y = generate(sample_size)
+    X_test, y_test_true = generate(1000, random_state=data_seed)
+
+    # generate equidistant, denoised data as well (only for visual reference)
+    X_denoised = np.linspace(0, 1, 100)[:, np.newaxis]
+    _, y_denoised = generate(1000, noise=False, X=X_denoised)
+
+    return {
+        "X": X,
+        "y": y,
+        "X_test": X_test,
+        "y_test_true": X_test_true,
+        "X_denoised": X_denoised,
+        "y_denoised": y_denoised
+    }

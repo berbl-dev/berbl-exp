@@ -36,3 +36,22 @@ def generate(n: int = 300, random_state: np.random.RandomState = 0):
     y = f(X, random_state=random_state)
 
     return X, y
+
+
+def data(sample_size, data_seed):
+
+    X, y = generate(sample_size)
+    X_test, y_test_true = generate(1000, random_state=data_seed)
+
+    # generate equidistant, denoised data as well (only for visual reference)
+    X_denoised = np.linspace(-1, 1, 100)[:, np.newaxis]
+    y_denoised = f(X_denoised, noise_var=0)
+
+    return {
+        "X": X,
+        "y": y,
+        "X_test": X_test,
+        "y_test_true": X_test_true,
+        "X_denoised": X_denoised,
+        "y_denoised": y_denoised
+    }

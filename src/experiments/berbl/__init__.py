@@ -1,9 +1,10 @@
-import joblib as jl
 import matplotlib.pyplot as plt  # type: ignore
 import mlflow  # type: ignore
 import numpy as np  # type: ignore
 from berbl import BERBL
 from berbl.literal.hyperparams import HParams
+from berbl.match.radial1d_drugowitsch import RadialMatch1D
+from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 from berbl.search.operators.drugowitsch import DefaultToolbox
 from experiments.utils import log_array, plot_prediction, save_plot
 from sklearn import metrics  # type: ignore
@@ -13,22 +14,18 @@ from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
 
-def experiment(name,
-               matchcls,
-               gaparams,
-               X,
-               y,
-               X_test,
-               y_test_true,
-               X_denoised,
-               y_denoised,
-               n_iter,
-               seed,
-               show,
-               sample_size,
-               literal=False,
-               standardize=False,
-               fit_mixing="laplace"):
+def run_experiment(name,
+                   softint,
+                   gaparams,
+                   data,
+                   n_iter,
+                   seed,
+                   show,
+                   sample_size,
+                   literal,
+                   standardize,
+                   fit_mixing):
+    matchcls = SoftInterval1D if softint else RadialMatch1D
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
         mlflow.log_params(HParams().__dict__)
@@ -37,6 +34,13 @@ def experiment(name,
         mlflow.log_param("literal", literal)
         mlflow.log_param("standardize", standardize)
         mlflow.log_param("fit_mixing", fit_mixing)
+
+        X = data["X"]
+        y = data["y"]
+        X_test = data["X_test"]
+        y_test_true = data["y_test_true"]
+        X_denoised = data["X_denoised"]
+        y_denoised = data["y_denoised"]
 
         log_array(X, "X")
         log_array(y, "y")
