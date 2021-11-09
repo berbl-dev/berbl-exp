@@ -89,6 +89,46 @@ def set_xcs_params(xcs, params):
     xcs.EA_PRED_RESET = params["EA_PRED_RESET"]
 
 
+def get_xcs_params(xcs):
+    return {
+        "OMP_NUM_THREADS" : xcs.OMP_NUM_THREADS,
+        "POP_INIT" : xcs.POP_INIT,
+        "POP_SIZE" : xcs.POP_SIZE,
+        "MAX_TRIALS" : xcs.MAX_TRIALS,
+        "PERF_TRIALS" : xcs.PERF_TRIALS,
+        "LOSS_FUNC" : xcs.LOSS_FUNC,
+        "HUBER_DELTA" : xcs.HUBER_DELTA,
+        "E0" : xcs.E0,
+        "ALPHA" : xcs.ALPHA,
+        "NU" : xcs.NU,
+        "BETA" : xcs.BETA,
+        "DELTA" : xcs.DELTA,
+        "THETA_DEL" : xcs.THETA_DEL,
+        "INIT_FITNESS" : xcs.INIT_FITNESS,
+        "INIT_ERROR" : xcs.INIT_ERROR,
+        "M_PROBATION" : xcs.M_PROBATION,
+        "STATEFUL" : xcs.STATEFUL,
+        "SET_SUBSUMPTION" : xcs.SET_SUBSUMPTION,
+        "THETA_SUB" : xcs.THETA_SUB,
+        "COMPACTION" : xcs.COMPACTION,
+        "TELETRANSPORTATION" : xcs.TELETRANSPORTATION,
+        "GAMMA" : xcs.GAMMA,
+        "P_EXPLORE" : xcs.P_EXPLORE,
+        "EA_SELECT_TYPE" : xcs.EA_SELECT_TYPE,
+        "EA_SELECT_SIZE" : xcs.EA_SELECT_SIZE,
+        "THETA_EA" : xcs.THETA_EA,
+        "LAMBDA" : xcs.LAMBDA,
+        "P_CROSSOVER" : xcs.P_CROSSOVER,
+        "ERR_REDUC" : xcs.ERR_REDUC,
+        "FIT_REDUC" : xcs.FIT_REDUC,
+        "EA_SUBSUMPTION" : xcs.EA_SUBSUMPTION,
+        "EA_PRED_RESET" : xcs.EA_PRED_RESET,
+    }
+
+def default_xcs_params():
+    xcs = xcsf.XCS(1, 1, 1)
+    return get_xcs_params(xcs)
+
 def parse_pop(s):
     """
     Parses the output of XCSF's ```print_pset()```.
@@ -131,14 +171,8 @@ def parse_pop(s):
     return res
 
 
-def run_experiment(name,
-                   data,
-                   n_iter,
-                   pop_size,
-                   seed,
-                   show,
-                   params,
-                   standardize):
+# TODO Deduplicate by introducing Experiment class
+def run_experiment(name, data, seed, show, params, standardize):
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
         X = data["X"]
@@ -179,9 +213,9 @@ def run_experiment(name,
         mae = metrics.mean_absolute_error(y_test_true, y_test)
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
-        mlflow.log_metric("mae", mae, n_iter)
-        mlflow.log_metric("mse", mse, n_iter)
-        mlflow.log_metric("r2-score", r2, n_iter)
+        mlflow.log_metric("mae", mae, params["MAX_TRIALS"])
+        mlflow.log_metric("mse", mse, params["MAX_TRIALS"])
+        mlflow.log_metric("r2-score", r2, params["MAX_TRIALS"])
 
         mlflow.log_metric("size", estimator.xcs_.pset_size())
 
@@ -213,46 +247,6 @@ def get_pop(xcs):
 
     pop = parse_pop(out.getvalue().decode("utf-8"))
     return pop
-
-
-def_params = {
-    "OMP_NUM_THREADS": 8,  # not relevant for learning performance
-    "POP_INIT": True,  # randomly initialize population
-    "POP_SIZE": 1000,  # “10 times the expected number of rules”
-    "MAX_TRIALS": int(1e4),
-    "PERF_TRIALS": 1000,  # not used, we evaluate manually
-    "LOSS_FUNC": "mae",  # not used, we evaluate manually
-    "HUBER_DELTA": 1,  # not used since LOSS_FUNC != "huber"
-    "E0": 1e-2,  # “if noise, use lower beta and higher e0”
-    "ALPHA": 1,  # typical value in literature (stein2019, stalph2012c)
-    "NU": 5,
-    "BETA": 0.005,  # lower value required if high noise
-    "DELTA":
-    0.1,  # not sensitive, typical value in literature (stein2019, stalph2012c)
-    "THETA_DEL":
-    20,  # not sensitive, typical value in literature (stein2019, stalph2012c)
-    "INIT_FITNESS": 0.01,  # e.g. stein2019
-    "INIT_ERROR": 0,  # e.g. stein2019
-    "M_PROBATION": int(1e8),  # quasi disabled
-    "STATEFUL": True,
-    "SET_SUBSUMPTION": True,
-    "THETA_SUB":
-    20,  # not sensitive, typical value in literature (stein2019, stalph2012c)
-    "COMPACTION": False,  # TODO Maybe enable this in the end?
-    "TELETRANSPORTATION": 50,  # irrelevant for supervised learning
-    "GAMMA": 0.95,  # irrelevant for supervised learning
-    "P_EXPLORE": 0.9,  # irrelevant for supervised learning
-    "EA_SELECT_TYPE": "tournament",  # tournament is the de-facto standard
-    "EA_SELECT_SIZE": 0.4,  # e.g. stein2019
-    "THETA_EA":
-    50,  # not sensitive, typical value in literature (stein2019, stalph2012c)
-    "LAMBDA": 2,  # de-facto standard
-    "P_CROSSOVER": 0.8,  # e.g. stalph2012c
-    "ERR_REDUC": 1,  # e.g. stein2019
-    "FIT_REDUC": 0.1,  # e.g. stein2019
-    "EA_SUBSUMPTION": False,  # seldomly used, set subsumption should suffice
-    "EA_PRED_RESET": False,
-}
 
 
 class XCSF(BaseEstimator, RegressorMixin):

@@ -17,7 +17,7 @@ from sklearn.utils import check_random_state  # type: ignore
 # TODO Extract common code from here and xcsf/__init__.py
 def run_experiment(name,
                    softint,
-                   gaparams,
+                   params,
                    data,
                    seed,
                    show,
@@ -27,7 +27,7 @@ def run_experiment(name,
     matchcls = SoftInterval1D if softint else RadialMatch1D
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
-        n_iter = gaparams["n_iter"]
+        n_iter = params["n_iter"]
         X = data["X"]
         y = data["y"]
         X_test = data["X_test"]
@@ -41,6 +41,7 @@ def run_experiment(name,
         mlflow.log_param("literal", literal)
         mlflow.log_param("standardize", standardize)
         mlflow.log_param("fit_mixing", fit_mixing)
+        mlflow.log_params(params)
 
         log_array(X, "X")
         log_array(y, "y")
@@ -53,9 +54,9 @@ def run_experiment(name,
 
         toolbox = DefaultToolbox(
             matchcls=matchcls,
-            n=gaparams["n"],
-            p=gaparams["p"],
-            tournsize=gaparams["tournsize"],
+            n=params["n"],
+            p=params["p"],
+            tournsize=params["tournsize"],
             literal=literal,
             fit_mixing=fit_mixing,
             random_state=random_state)

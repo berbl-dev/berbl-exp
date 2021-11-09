@@ -50,7 +50,7 @@ def data(data_seed):
         "X": X,
         "y": y,
         "X_test": X_test,
-        "y_test_true": X_test_true,
+        "y_test_true": y_test_true,
         "X_denoised": X_denoised,
         "y_denoised": y_denoised
     }
