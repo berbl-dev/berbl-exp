@@ -16,15 +16,17 @@ from sklearn.utils import check_random_state  # type: ignore
 
 # TODO Extract common code from here and xcsf/__init__.py
 def run_experiment(name,
-                   softint,
-                   params,
                    data,
-                   seed,
-                   show,
-                   literal,
                    standardize,
-                   fit_mixing):
-    matchcls = SoftInterval1D if softint else RadialMatch1D
+                   seed,
+                   params,
+                   show):
+    if params["match"] == "radial":
+        matchcls = RadialMatch1D
+    elif params["match"] == "softint":
+        matchcls = SoftInterval1D
+    else:
+        print(f"Unsupported match function family: {params['match']}")
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
         n_iter = params["n_iter"]
@@ -38,9 +40,7 @@ def run_experiment(name,
         mlflow.log_params(HParams().__dict__)
         mlflow.log_param("seed", seed)
         mlflow.log_param("train.size", len(X))
-        mlflow.log_param("literal", literal)
         mlflow.log_param("standardize", standardize)
-        mlflow.log_param("fit_mixing", fit_mixing)
         mlflow.log_params(params)
 
         log_array(X, "X")
@@ -57,8 +57,8 @@ def run_experiment(name,
             n=params["n"],
             p=params["p"],
             tournsize=params["tournsize"],
-            literal=literal,
-            fit_mixing=fit_mixing,
+            literal=params["literal"],
+            fit_mixing=params["fit_mixing"],
             random_state=random_state)
 
         estimator = BERBL(toolbox, search="drugowitsch", n_iter=n_iter)

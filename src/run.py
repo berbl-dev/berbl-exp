@@ -28,6 +28,13 @@ def experiment_name(algorithm, module):
     return f"{algorithm}.{module}"
 
 
+def maybe_override(params, param, value):
+    if value is not None and params[param] != value:
+        print(f"Warning: Overriding {param}={params[param]} with "
+              f"{param}={value}")
+        params[param] = value
+
+
 @click.command()
 @click.argument("ALGORITHM")
 @click.argument("MODULE")
@@ -47,13 +54,13 @@ def experiment_name(algorithm, module):
               default=False,
               show_default=True)
 # only applicable to berbl
-@click.option("--fit-mix", type=str, default="laplace")
-@click.option("--literal/--no-literal", type=bool, default=False)
-@click.option("--softint/--no-softint", type=bool, default=False)
+@click.option("--fit-mix", type=str, default=None)
+@click.option("--literal/--no-literal", type=bool, default=None)
+@click.option("--match", type=str, default=None)
 # only applicable to XCSF
 @click.option("-p", "--pop_size", type=click.IntRange(min=1), default=100)
 def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
-           fit_mix, literal, softint, pop_size):
+           fit_mix, literal, match, pop_size):
     """
     Use ALGORITHM ("berbl" or "xcsf") in an experiment defined by MODULE
     (module path appended to "experiments.ALGORITHM.").
@@ -71,34 +78,27 @@ def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
     params = param_mod.params
 
     if algorithm == "berbl":
-        if n_iter is not None:
-            print(f"Warning: Overriding n_iter={params['n_iter']} with "
-                f"n_iter={n_iter}")
-            params["n_iter"] = n_iter
+        maybe_override(params, "n_iter", n_iter)
+        maybe_override(params, "match", match)
+        maybe_override(params, "literal", literal)
+        maybe_override(params, "fit_mixing", fit_mix)
         from experiments.berbl import run_experiment
         run_experiment(name=exp,
-                       softint=softint,
-                       params=params,
                        data=data,
-                       seed=seed,
-                       show=show,
-                       literal=literal,
                        standardize=standardize,
-                       fit_mixing=fit_mix)
+                       seed=seed,
+                       params=params,
+                       show=show)
     elif algorithm == "xcsf":
+        maybe_override(params, "MAX_TRIALS", n_iter)
         from experiments.xcsf import run_experiment
-        if n_iter is not None:
-            print(f"Warning: Overriding MAX_TRIALS={params['MAX_TRIALS']} with "
-                f"n_iter={n_iter}")
-            params["MAX_TRIALS"] = n_iter
-        run_experiment(
-            name=exp,
-            data=data,
-            seed=seed,
-            show=show,
-            standardize=standardize,
-            params=params)
-            # TODO Optimize parameters for each experiment
+        run_experiment(name=exp,
+                       data=data,
+                       standardize=standardize,
+                       seed=seed,
+                       params=params,
+                       show=show)
+        # TODO Optimize parameters for each experiment
     else:
         print(f"Algorithm {algorithm} not one of [berbl, xcsf].")
 
@@ -115,69 +115,58 @@ def all():
     data_seeds = range(n_reps, n_reps + n_data_sets)
     # Name of task and whether soft interval matching is used.
     tasks = [
-        ("book.generated_function", False),
-        ("book.sparse_noisy_data", False),
-        ("book.noisy_sinus", True),
-        ("book.variable_noise", True),
+        "book.generated_function",
+        "book.sparse_noisy_data",
+        "book.noisy_sinus",
+        "book.variable_noise",
         # Not in the book but required for fairer comparison with XCSF.
-        ("book.generated_function", True),
-        ("book.sparse_noisy_data", True),
+        "additional_literal.generated_function",
+        "additional_literal.sparse_noisy_data",
+        # Expected to behave the same as the literal implementation.
+        "non_literal.generated_function",
+        "non_literal.sparse_noisy_data",
+        "non_literal.noisy_sinus",
+        "non_literal.variable_noise",
     ]
 
     from experiments.berbl import run_experiment
     for seed in seeds:
         for data_seed in data_seeds:
-            for task, softint in tasks:
+            for task in tasks:
                 data = get_data(task, data_seed)
                 exp = experiment_name("berbl", task)
                 param_path = f"experiments.{exp}"
                 param_mod = importlib.import_module(param_path)
                 params = param_mod.params
                 run_experiment(name=exp,
-                               softint=softint,
-                               params=params,
                                data=data,
-                               seed=seed,
-                               show=False,
-                               literal=True,
                                standardize=False,
-                               fit_mixing="laplace")
-                run_experiment(name=exp,
-                               softint=softint,
-                               params=params,
-                               data=data,
                                seed=seed,
-                               show=False,
-                               literal=False,
-                               standardize=False,
-                               fit_mixing="laplace")
-                run_experiment(name=exp,
-                               softint=softint,
                                params=params,
+                               show=False)
+                run_experiment(name=exp,
                                data=data,
-                               seed=seed,
-                               show=False,
-                               literal=False,
                                standardize=True,
-                               fit_mixing="laplace")
+                               seed=seed,
+                               params=params,
+                               show=False)
 
     from experiments.xcsf import run_experiment
     for seed in seeds:
         for data_seed in data_seeds:
-            for task, softint in tasks:
+            for task in tasks:
                 data = get_data(task, data_seed)
                 exp = experiment_name("xcsf", task)
                 param_path = f"experiments.{exp}"
                 param_mod = importlib.import_module(param_path)
                 params = param_mod.params
-                run_experiment(
-                    name=exp,
-                    data=data,
-                    seed=seed,
-                    show=False,
-                    standardize=True,
-                    params=None)
-                    # TODO Optimize parameters for each experiment
+                run_experiment(name=exp,
+                               data=data,
+                               standardize=True,
+                               seed=seed,
+                               params=params,
+                               show=False)
+                # TODO Optimize parameters for each experiment
 
     # TODO Store run IDs somewhere and then use them in eval
 
