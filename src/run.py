@@ -1,3 +1,6 @@
+#! /usr/bin/env nix-shell
+#! nix-shell -i python -p "python38.withPackages(ps: with ps; [click])"
+
 import os
 import pathlib
 import shutil
@@ -12,11 +15,6 @@ from experiments.xcsf import XCSFExperiment
 @click.group()
 def main():
     pass
-
-
-# NEXT Add repeat and
-# THEN Fix Slurm stuff
-# THEN Add all().
 
 
 @click.command()
