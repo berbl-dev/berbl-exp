@@ -14,10 +14,13 @@ from .. import Experiment, maybe_override
 
 
 class BERBLExperiment(Experiment):
+    algorithm = "berbl"
+
     def init_estimator(self):
         self.n_iter = self.params["n_iter"]
 
-        mlflow.log_params(HParams().__dict__)
+        if self.params["literal"]:
+            mlflow.log_params(HParams().__dict__)
 
         random_state = check_random_state(self.seed)
 

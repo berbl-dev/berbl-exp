@@ -1,11 +1,8 @@
-import os
 import importlib
-import pathlib
-import shutil
-from subprocess import Popen, PIPE, STDOUT
-import tempfile
 
 import click
+from experiments.berbl import BERBLExperiment
+from experiments.xcsf import XCSFExperiment
 
 
 @click.group()
@@ -54,16 +51,14 @@ def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
         exit(1)
 
     if algorithm == "berbl":
-        from experiments.berbl import BERBLExperiment
-        exp = BERBLExperiment(algorithm, module, seed, data_seed, standardize,
+        exp = BERBLExperiment(module, seed, data_seed, standardize,
                               show)
         exp.run(n_iter=n_iter,
                 match=match,
                 literal=literal,
                 fit_mixing=fit_mix)
     elif algorithm == "xcsf":
-        from experiments.xcsf import XCSFExperiment
-        exp = XCSFExperiment(algorithm, module, seed, data_seed, standardize,
+        exp = XCSFExperiment(module, seed, data_seed, standardize,
                              show)
         exp.run(MAX_TRIALS=n_iter)
         # TODO Optimize parameters for each experiment
@@ -97,43 +92,32 @@ def all():
         "non_literal.variable_noise",
     ]
 
-    from experiments.berbl import run_experiment
     for seed in seeds:
         for data_seed in data_seeds:
-            for task in tasks:
-                data = get_data(task, data_seed)
-                exp = experiment_name("berbl", task)
-                param_path = f"experiments.{exp}"
-                param_mod = importlib.import_module(param_path)
-                params = param_mod.params
-                run_experiment(name=exp,
-                               data=data,
-                               standardize=False,
-                               seed=seed,
-                               params=params,
-                               show=False)
-                run_experiment(name=exp,
-                               data=data,
-                               standardize=True,
-                               seed=seed,
-                               params=params,
-                               show=False)
+            for module in tasks:
+                exp = BERBLExperiment(module,
+                                      seed,
+                                      data_seed,
+                                      standardize=False,
+                                      show=False)
+                exp.run()
+                exp = BERBLExperiment(module,
+                                      seed,
+                                      data_seed,
+                                      standardize=True,
+                                      show=False)
+                exp.run()
 
     from experiments.xcsf import run_experiment
     for seed in seeds:
         for data_seed in data_seeds:
-            for task in tasks:
-                data = get_data(task, data_seed)
-                exp = experiment_name("xcsf", task)
-                param_path = f"experiments.{exp}"
-                param_mod = importlib.import_module(param_path)
-                params = param_mod.params
-                run_experiment(name=exp,
-                               data=data,
-                               standardize=True,
-                               seed=seed,
-                               params=params,
-                               show=False)
+            for module in tasks:
+                exp = XCSFExperiment(module,
+                                     seed,
+                                     data_seed,
+                                     standardize=True,
+                                     show=False)
+                exp.run()
                 # TODO Optimize parameters for each experiment
 
     # TODO Store run IDs somewhere and then use them in eval

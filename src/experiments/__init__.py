@@ -29,16 +29,13 @@ def maybe_override(params, param, value):
 
 
 class Experiment(abc.ABC):
-    def __init__(self, algorithm, module, seed, data_seed, standardize, show):
-        algorithms = ["berbl", "xcsf"]
-        if not algorithm in algorithms:
-            print(
-                f"ALGORITHM has to be one of {algorithms} but is {algorithm}")
-            exit(1)
+    @property
+    @abc.abstractmethod
+    def algorithm(self):
+        pass
 
-        self.algorithm = algorithm
-
-        self.experiment_name = experiment_name(algorithm, module)
+    def __init__(self, module, seed, data_seed, standardize, show):
+        self.experiment_name = experiment_name(self.algorithm, module)
 
         self.seed = seed
 

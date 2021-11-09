@@ -18,6 +18,8 @@ from .. import Experiment
 
 
 class XCSFExperiment(Experiment):
+    algorithm = "xcsf"
+
     def init_estimator(self):
         self.estimator = XCSF(self.params, random_state=self.seed)
 
