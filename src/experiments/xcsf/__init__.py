@@ -137,20 +137,19 @@ def run_experiment(name,
                    pop_size,
                    seed,
                    show,
-                   sample_size,
-                   params=None,
-                   standardize=False):
+                   params,
+                   standardize):
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
-        mlflow.log_param("seed", seed)
-        mlflow.log_param("train.size", sample_size)
-
         X = data["X"]
         y = data["y"]
         X_test = data["X_test"]
         y_test_true = data["y_test_true"]
         X_denoised = data["X_denoised"]
         y_denoised = data["y_denoised"]
+
+        mlflow.log_param("seed", seed)
+        mlflow.log_param("train.size", len(X))
 
         log_array(X, "X")
         log_array(y, "y")
@@ -159,15 +158,13 @@ def run_experiment(name,
         log_array(X_denoised, "X_denoised")
         log_array(y_denoised, "y_denoised")
 
-        if standardize:
-            scaler_X = StandardScaler()
-            scaler_y = StandardScaler()
-            X = scaler_X.fit_transform(X)
-            X_test = scaler_X.transform(X_test)
-            y = scaler_y.fit_transform(y)
-            y_test_true = scaler_y.transform(y_test_true)
-
         estimator = XCSF(params)
+
+        if standardize:
+            estimator = make_pipeline(
+                StandardScaler(),
+                TransformedTargetRegressor(regressor=estimator,
+                                           transformer=StandardScaler()))
 
         estimator.fit(X, y)
 
@@ -175,12 +172,6 @@ def run_experiment(name,
         y_test = estimator.predict(X_test)
 
         # TODO get unmixed classifier predictions
-
-        if standardize:
-            X = scaler_X.inverse_transform(X)
-            X_test = scaler_X.inverse_transform(X_test)
-            y = scaler_y.inverse_transform(y)
-            y_test = scaler_y.inverse_transform(y_test)
 
         log_array(y_test, "y_test")
 

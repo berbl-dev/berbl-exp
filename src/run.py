@@ -9,50 +9,62 @@ import click
 
 
 @click.group()
-def main():
-    pass
+@click.pass_context
+@click.argument("ALGORITHM")
+def main(ctx, algorithm):
+    ctx.ensure_object(dict)
+    algorithms = ["berbl", "xcsf"]
+    if not algorithm in algorithms:
+        print(f"ALGORITHM has to be one of {algorithms} but is {algorithm}")
+        exit(1)
+    ctx.obj["algorithm"] = algorithm
+
+
 
 
 @click.command()
-@click.argument("ALGORITHM")
+@click.pass_context
 @click.argument("MODULE")
-@click.option("-n", "--n-iter", type=click.IntRange(min=1), default=250)
-@click.option("-s", "--seed", type=click.IntRange(min=0), default=0)
-@click.option("--data-seed", type=click.IntRange(min=0), default=1)
-@click.option("--show/--no-show", type=bool, default=False)
-@click.option("-d", "--sample-size", type=click.IntRange(min=1), default=300)
-@click.option("--standardize/--no-standardize", type=bool, default=False)
+@click.option("-n", "--n-iter", type=click.IntRange(min=1))
+@click.option("-s", "--seed", type=click.IntRange(min=0), default=0, show_default=True)
+@click.option("--data-seed", type=click.IntRange(min=0), default=1, show_default=True)
+@click.option("--show/--no-show", type=bool, default=False, show_default=True)
+@click.option("--standardize/--no-standardize", type=bool, default=False, show_default=True)
 # only applicable to berbl
 @click.option("--fit-mix", type=str, default="laplace")
 @click.option("--literal/--no-literal", type=bool, default=False)
 @click.option("--softint/--no-softint", type=bool, default=False)
 # only applicable to XCSF
 @click.option("-p", "--pop_size", type=click.IntRange(min=1), default=100)
-def single(algorithm, module, n_iter, seed, data_seed, show, sample_size,
+def single(ctx, module, n_iter, seed, data_seed, show,
            standardize, fit_mix, literal, softint, pop_size):
     """
     Use ALGORITHM ("berbl" or "xcsf") in an experiment defined by MODULE
     (module path appended to "experiments.ALGORITHM.").
     """
+    algorithm = ctx.obj["algorithm"]
+
     task_path = f"tasks.{module}"
     exp = f"{algorithm}.{module}"
     param_path = f"experiments.{exp}"
 
     task_mod = importlib.import_module(task_path)
-    data = task_mod.data(sample_size, data_seed)
+    data = task_mod.data(data_seed)
 
     if algorithm == "berbl":
         param_mod = importlib.import_module(param_path)
         gaparams = param_mod.gaparams
+        if n_iter is not None:
+            print(f"Warning: Overriding n_iter={gaparams['n_iter']} with "
+                  f"n_iter={n_iter}")
+            gaparams["n_iter"] = n_iter
         from experiments.berbl import run_experiment
         run_experiment(name=exp,
                        softint=softint,
                        gaparams=gaparams,
                        data=data,
-                       n_iter=n_iter,
                        seed=seed,
                        show=show,
-                       sample_size=sample_size,
                        literal=literal,
                        standardize=standardize,
                        fit_mixing=fit_mix)
@@ -64,8 +76,9 @@ def single(algorithm, module, n_iter, seed, data_seed, show, sample_size,
                        n_iter=n_iter,
                        seed=seed,
                        show=show,
-                       sample_size=sample_size,
-                       standardize=standardize)
+                       standardize=standardize,
+                       # TODO Optimize parameters for each experiment
+                       params=None)
     else:
         print(f"Algorithm {algorithm} not one of [berbl, xcsf].")
 

@@ -14,33 +14,33 @@ from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
 
+# TODO Extract common code from here and xcsf/__init__.py
 def run_experiment(name,
                    softint,
                    gaparams,
                    data,
-                   n_iter,
                    seed,
                    show,
-                   sample_size,
                    literal,
                    standardize,
                    fit_mixing):
     matchcls = SoftInterval1D if softint else RadialMatch1D
     mlflow.set_experiment(name)
     with mlflow.start_run() as run:
-        mlflow.log_params(HParams().__dict__)
-        mlflow.log_param("seed", seed)
-        mlflow.log_param("train.size", sample_size)
-        mlflow.log_param("literal", literal)
-        mlflow.log_param("standardize", standardize)
-        mlflow.log_param("fit_mixing", fit_mixing)
-
+        n_iter = gaparams["n_iter"]
         X = data["X"]
         y = data["y"]
         X_test = data["X_test"]
         y_test_true = data["y_test_true"]
         X_denoised = data["X_denoised"]
         y_denoised = data["y_denoised"]
+
+        mlflow.log_params(HParams().__dict__)
+        mlflow.log_param("seed", seed)
+        mlflow.log_param("train.size", len(X))
+        mlflow.log_param("literal", literal)
+        mlflow.log_param("standardize", standardize)
+        mlflow.log_param("fit_mixing", fit_mixing)
 
         log_array(X, "X")
         log_array(y, "y")
@@ -53,7 +53,6 @@ def run_experiment(name,
 
         toolbox = DefaultToolbox(
             matchcls=matchcls,
-            # TODO Get rid of unneeded gaparams dict
             n=gaparams["n"],
             p=gaparams["p"],
             tournsize=gaparams["tournsize"],
