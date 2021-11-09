@@ -211,6 +211,7 @@ def slurm(node):
 
 main.add_command(single)
 main.add_command(all)
+main.add_command(slurm)
 
 if __name__ == "__main__":
     main()
