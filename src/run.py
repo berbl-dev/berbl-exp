@@ -138,7 +138,11 @@ def all():
 
     # TODO Store run IDs somewhere and then use them in eval
 
-    pass
+
+@click.command()
+def slurm():
+    ...
+    # TODO Implement Slurm batch submitter
 
 
 main.add_command(single)

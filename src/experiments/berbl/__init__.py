@@ -12,6 +12,7 @@ from sklearn.utils import check_random_state  # type: ignore
 
 from .. import Experiment, maybe_override
 
+
 class BERBLExperiment(Experiment):
     def init_estimator(self):
         self.n_iter = self.params["n_iter"]
@@ -27,16 +28,17 @@ class BERBLExperiment(Experiment):
         else:
             print(f"Unsupported match function family: {self.params['match']}")
 
-        toolbox = DefaultToolbox(
-            matchcls=matchcls,
-            n=self.params["n"],
-            p=self.params["p"],
-            tournsize=self.params["tournsize"],
-            literal=self.params["literal"],
-            fit_mixing=self.params["fit_mixing"],
-            random_state=random_state)
+        toolbox = DefaultToolbox(matchcls=matchcls,
+                                 n=self.params["n"],
+                                 p=self.params["p"],
+                                 tournsize=self.params["tournsize"],
+                                 literal=self.params["literal"],
+                                 fit_mixing=self.params["fit_mixing"],
+                                 random_state=random_state)
 
-        self.estimator = BERBL(toolbox, search="drugowitsch", n_iter=self.n_iter)
+        self.estimator = BERBL(toolbox,
+                               search="drugowitsch",
+                               n_iter=self.n_iter)
 
     def evaluate(self, X, y, X_test, y_test_true, X_denoised, y_denoised):
         # make predictions for test data
@@ -52,8 +54,10 @@ class BERBLExperiment(Experiment):
         # two additional statistics to maybe better gauge solution performance
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
-        mlflow.log_metric("elitist.size", self.estimator.search_.size_[0], self.n_iter)
-        mlflow.log_metric("elitist.p_M_D", self.estimator.search_.p_M_D_[0], self.n_iter)
+        mlflow.log_metric("elitist.size", self.estimator.search_.size_[0],
+                          self.n_iter)
+        mlflow.log_metric("elitist.p_M_D", self.estimator.search_.p_M_D_[0],
+                          self.n_iter)
         mlflow.log_metric("elitist.mse", mse, self.n_iter)
         mlflow.log_metric("elitist.r2-score", r2, self.n_iter)
 
@@ -71,8 +75,8 @@ class BERBLExperiment(Experiment):
                                   y_denoised=y_denoised)
 
         plot_cls(X=X, y=y_cls, ax=ax)
-        add_title(ax, self.estimator.search_.size_[0], self.estimator.search_.p_M_D_[0],
-                  mse, r2)
+        add_title(ax, self.estimator.search_.size_[0],
+                  self.estimator.search_.p_M_D_[0], mse, r2)
         save_plot(fig, self.seed)
 
         if self.show:
