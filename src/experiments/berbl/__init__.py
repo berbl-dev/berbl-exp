@@ -8,74 +8,42 @@ from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 from berbl.search.operators.drugowitsch import DefaultToolbox
 from experiments.utils import log_array, plot_prediction, save_plot
 from sklearn import metrics  # type: ignore
-from sklearn.compose import TransformedTargetRegressor  # type: ignore
-from sklearn.pipeline import make_pipeline  # type: ignore
-from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
+from .. import Experiment, maybe_override
 
-# TODO Extract common code from here and xcsf/__init__.py
-def run_experiment(name,
-                   data,
-                   standardize,
-                   seed,
-                   params,
-                   show):
-    if params["match"] == "radial":
-        matchcls = RadialMatch1D
-    elif params["match"] == "softint":
-        matchcls = SoftInterval1D
-    else:
-        print(f"Unsupported match function family: {params['match']}")
-    mlflow.set_experiment(name)
-    with mlflow.start_run() as run:
-        n_iter = params["n_iter"]
-        X = data["X"]
-        y = data["y"]
-        X_test = data["X_test"]
-        y_test_true = data["y_test_true"]
-        X_denoised = data["X_denoised"]
-        y_denoised = data["y_denoised"]
+class BERBLExperiment(Experiment):
+    def init_estimator(self):
+        self.n_iter = self.params["n_iter"]
 
         mlflow.log_params(HParams().__dict__)
-        mlflow.log_param("seed", seed)
-        mlflow.log_param("train.size", len(X))
-        mlflow.log_param("standardize", standardize)
-        mlflow.log_params(params)
 
-        log_array(X, "X")
-        log_array(y, "y")
-        log_array(X_test, "X_test")
-        log_array(y_test_true, "y_test_true")
-        log_array(X_denoised, "X_denoised")
-        log_array(y_denoised, "y_denoised")
+        random_state = check_random_state(self.seed)
 
-        random_state = check_random_state(seed)
+        if self.params["match"] == "radial":
+            matchcls = RadialMatch1D
+        elif self.params["match"] == "softint":
+            matchcls = SoftInterval1D
+        else:
+            print(f"Unsupported match function family: {self.params['match']}")
 
         toolbox = DefaultToolbox(
             matchcls=matchcls,
-            n=params["n"],
-            p=params["p"],
-            tournsize=params["tournsize"],
-            literal=params["literal"],
-            fit_mixing=params["fit_mixing"],
+            n=self.params["n"],
+            p=self.params["p"],
+            tournsize=self.params["tournsize"],
+            literal=self.params["literal"],
+            fit_mixing=self.params["fit_mixing"],
             random_state=random_state)
 
-        estimator = BERBL(toolbox, search="drugowitsch", n_iter=n_iter)
+        self.estimator = BERBL(toolbox, search="drugowitsch", n_iter=self.n_iter)
 
-        if standardize:
-            estimator = make_pipeline(
-                StandardScaler(),
-                TransformedTargetRegressor(regressor=estimator,
-                                           transformer=StandardScaler()))
-
-        estimator = estimator.fit(X, y)
-
+    def evaluate(self, X, y, X_test, y_test_true, X_denoised, y_denoised):
         # make predictions for test data
-        y_test, var = estimator.predict_mean_var(X_test)
+        y_test, var = self.estimator.predict_mean_var(X_test)
 
         # get unmixed classifier predictions
-        y_cls = estimator.predicts(X)
+        y_cls = self.estimator.predicts(X)
 
         log_array(y_test, "y_test")
         log_array(var, "var")
@@ -84,10 +52,10 @@ def run_experiment(name,
         # two additional statistics to maybe better gauge solution performance
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
-        mlflow.log_metric("elitist.size", estimator.search_.size_[0], n_iter)
-        mlflow.log_metric("elitist.p_M_D", estimator.search_.p_M_D_[0], n_iter)
-        mlflow.log_metric("elitist.mse", mse, n_iter)
-        mlflow.log_metric("elitist.r2-score", r2, n_iter)
+        mlflow.log_metric("elitist.size", self.estimator.search_.size_[0], self.n_iter)
+        mlflow.log_metric("elitist.p_M_D", self.estimator.search_.p_M_D_[0], self.n_iter)
+        mlflow.log_metric("elitist.mse", mse, self.n_iter)
+        mlflow.log_metric("elitist.r2-score", r2, self.n_iter)
 
         # TODO Reimplement copying properly
         # model_file = f"models/Model {seed}.joblib"
@@ -103,11 +71,11 @@ def run_experiment(name,
                                   y_denoised=y_denoised)
 
         plot_cls(X=X, y=y_cls, ax=ax)
-        add_title(ax, estimator.search_.size_[0], estimator.search_.p_M_D_[0],
+        add_title(ax, self.estimator.search_.size_[0], self.estimator.search_.p_M_D_[0],
                   mse, r2)
-        save_plot(fig, seed)
+        save_plot(fig, self.seed)
 
-        if show:
+        if self.show:
             plt.show()
 
 

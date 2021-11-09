@@ -18,23 +18,6 @@ def main():
 # THEN Add all().
 
 
-def get_data(module, data_seed):
-    task_path = f"tasks.{module}"
-    task_mod = importlib.import_module(task_path)
-    return task_mod.data(data_seed)
-
-
-def experiment_name(algorithm, module):
-    return f"{algorithm}.{module}"
-
-
-def maybe_override(params, param, value):
-    if value is not None and params[param] != value:
-        print(f"Warning: Overriding {param}={params[param]} with "
-              f"{param}={value}")
-        params[param] = value
-
-
 @click.command()
 @click.argument("ALGORITHM")
 @click.argument("MODULE")
@@ -70,34 +53,19 @@ def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
         print(f"ALGORITHM has to be one of {algorithms} but is {algorithm}")
         exit(1)
 
-    exp = experiment_name(algorithm, module)
-    data = get_data(module, data_seed)
-
-    param_path = f"experiments.{exp}"
-    param_mod = importlib.import_module(param_path)
-    params = param_mod.params
-
     if algorithm == "berbl":
-        maybe_override(params, "n_iter", n_iter)
-        maybe_override(params, "match", match)
-        maybe_override(params, "literal", literal)
-        maybe_override(params, "fit_mixing", fit_mix)
-        from experiments.berbl import run_experiment
-        run_experiment(name=exp,
-                       data=data,
-                       standardize=standardize,
-                       seed=seed,
-                       params=params,
-                       show=show)
+        from experiments.berbl import BERBLExperiment
+        exp = BERBLExperiment(algorithm, module, seed, data_seed, standardize,
+                              show)
+        exp.run(n_iter=n_iter,
+                match=match,
+                literal=literal,
+                fit_mixing=fit_mix)
     elif algorithm == "xcsf":
-        maybe_override(params, "MAX_TRIALS", n_iter)
-        from experiments.xcsf import run_experiment
-        run_experiment(name=exp,
-                       data=data,
-                       standardize=standardize,
-                       seed=seed,
-                       params=params,
-                       show=show)
+        from experiments.xcsf import XCSFExperiment
+        exp = XCSFExperiment(algorithm, module, seed, data_seed, standardize,
+                             show)
+        exp.run(MAX_TRIALS=n_iter)
         # TODO Optimize parameters for each experiment
     else:
         print(f"Algorithm {algorithm} not one of [berbl, xcsf].")

@@ -6,17 +6,57 @@ import matplotlib.pyplot as plt  # type: ignore
 import mlflow  # type: ignore
 import pyparsing as pp  # type: ignore
 import xcsf.xcsf as xcsf  # type: ignore
-from experiments.utils import log_array, plot_prediction, save_plot
 from berbl.utils import randseed
+from experiments.utils import log_array, plot_prediction, save_plot
 from sklearn import metrics  # type: ignore
 from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
-from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
-from sklearn.utils.estimator_checks import check_estimator  # type: ignore
-from sklearn.utils.validation import (
-    check_array,  # type: ignore
-    check_is_fitted,
-    check_X_y)
+from sklearn.utils.validation import check_array  # type: ignore
+from sklearn.utils.validation import check_is_fitted, check_X_y
+
+from .. import Experiment
+
+
+class XCSFExperiment(Experiment):
+    def init_estimator(self):
+        self.estimator = XCSF(self.params, random_state=self.seed)
+
+    def evaluate(self, X, y, X_test, y_test_true, X_denoised, y_denoised):
+        # make predictions for test data
+        y_test = self.estimator.predict(X_test)
+        log_array(y_test, "y_test")
+
+        # TODO get unmixed classifier predictions
+
+        # get metrics
+        mae = metrics.mean_absolute_error(y_test_true, y_test)
+        mse = metrics.mean_squared_error(y_test_true, y_test)
+        r2 = metrics.r2_score(y_test_true, y_test)
+        mlflow.log_metric("mae", mae, self.params["MAX_TRIALS"])
+        mlflow.log_metric("mse", mse, self.params["MAX_TRIALS"])
+        mlflow.log_metric("r2-score", r2, self.params["MAX_TRIALS"])
+
+        mlflow.log_metric("size", self.estimator.xcs_.pset_size())
+
+        # store the model, you never know when you need it
+        f = tempfile.NamedTemporaryFile(prefix=f"model-", suffix=f".model")
+        self.estimator.xcs_.save(f.name)
+        mlflow.log_artifact(f.name)
+        f.close()
+
+        pop = get_pop(self.estimator.xcs_)
+        utils.log_json(pop, "population")
+
+        fig, ax = plot_prediction(X=X,
+                                  y=y,
+                                  X_test=X_test,
+                                  y_test=y_test,
+                                  X_denoised=X_denoised,
+                                  y_denoised=y_denoised)
+        save_plot(fig, self.seed)
+
+        if self.show:
+            plt.show()
 
 
 def log_xcs_params(xcs):
@@ -91,43 +131,45 @@ def set_xcs_params(xcs, params):
 
 def get_xcs_params(xcs):
     return {
-        "OMP_NUM_THREADS" : xcs.OMP_NUM_THREADS,
-        "POP_INIT" : xcs.POP_INIT,
-        "POP_SIZE" : xcs.POP_SIZE,
-        "MAX_TRIALS" : xcs.MAX_TRIALS,
-        "PERF_TRIALS" : xcs.PERF_TRIALS,
-        "LOSS_FUNC" : xcs.LOSS_FUNC,
-        "HUBER_DELTA" : xcs.HUBER_DELTA,
-        "E0" : xcs.E0,
-        "ALPHA" : xcs.ALPHA,
-        "NU" : xcs.NU,
-        "BETA" : xcs.BETA,
-        "DELTA" : xcs.DELTA,
-        "THETA_DEL" : xcs.THETA_DEL,
-        "INIT_FITNESS" : xcs.INIT_FITNESS,
-        "INIT_ERROR" : xcs.INIT_ERROR,
-        "M_PROBATION" : xcs.M_PROBATION,
-        "STATEFUL" : xcs.STATEFUL,
-        "SET_SUBSUMPTION" : xcs.SET_SUBSUMPTION,
-        "THETA_SUB" : xcs.THETA_SUB,
-        "COMPACTION" : xcs.COMPACTION,
-        "TELETRANSPORTATION" : xcs.TELETRANSPORTATION,
-        "GAMMA" : xcs.GAMMA,
-        "P_EXPLORE" : xcs.P_EXPLORE,
-        "EA_SELECT_TYPE" : xcs.EA_SELECT_TYPE,
-        "EA_SELECT_SIZE" : xcs.EA_SELECT_SIZE,
-        "THETA_EA" : xcs.THETA_EA,
-        "LAMBDA" : xcs.LAMBDA,
-        "P_CROSSOVER" : xcs.P_CROSSOVER,
-        "ERR_REDUC" : xcs.ERR_REDUC,
-        "FIT_REDUC" : xcs.FIT_REDUC,
-        "EA_SUBSUMPTION" : xcs.EA_SUBSUMPTION,
-        "EA_PRED_RESET" : xcs.EA_PRED_RESET,
+        "OMP_NUM_THREADS": xcs.OMP_NUM_THREADS,
+        "POP_INIT": xcs.POP_INIT,
+        "POP_SIZE": xcs.POP_SIZE,
+        "MAX_TRIALS": xcs.MAX_TRIALS,
+        "PERF_TRIALS": xcs.PERF_TRIALS,
+        "LOSS_FUNC": xcs.LOSS_FUNC,
+        "HUBER_DELTA": xcs.HUBER_DELTA,
+        "E0": xcs.E0,
+        "ALPHA": xcs.ALPHA,
+        "NU": xcs.NU,
+        "BETA": xcs.BETA,
+        "DELTA": xcs.DELTA,
+        "THETA_DEL": xcs.THETA_DEL,
+        "INIT_FITNESS": xcs.INIT_FITNESS,
+        "INIT_ERROR": xcs.INIT_ERROR,
+        "M_PROBATION": xcs.M_PROBATION,
+        "STATEFUL": xcs.STATEFUL,
+        "SET_SUBSUMPTION": xcs.SET_SUBSUMPTION,
+        "THETA_SUB": xcs.THETA_SUB,
+        "COMPACTION": xcs.COMPACTION,
+        "TELETRANSPORTATION": xcs.TELETRANSPORTATION,
+        "GAMMA": xcs.GAMMA,
+        "P_EXPLORE": xcs.P_EXPLORE,
+        "EA_SELECT_TYPE": xcs.EA_SELECT_TYPE,
+        "EA_SELECT_SIZE": xcs.EA_SELECT_SIZE,
+        "THETA_EA": xcs.THETA_EA,
+        "LAMBDA": xcs.LAMBDA,
+        "P_CROSSOVER": xcs.P_CROSSOVER,
+        "ERR_REDUC": xcs.ERR_REDUC,
+        "FIT_REDUC": xcs.FIT_REDUC,
+        "EA_SUBSUMPTION": xcs.EA_SUBSUMPTION,
+        "EA_PRED_RESET": xcs.EA_PRED_RESET,
     }
+
 
 def default_xcs_params():
     xcs = xcsf.XCS(1, 1, 1)
     return get_xcs_params(xcs)
+
 
 def parse_pop(s):
     """
@@ -169,75 +211,6 @@ def parse_pop(s):
     res = [x.as_dict() for x in rules.parse_string(s)]
 
     return res
-
-
-# TODO Deduplicate by introducing Experiment class
-def run_experiment(name, data, seed, show, params, standardize):
-    mlflow.set_experiment(name)
-    with mlflow.start_run() as run:
-        X = data["X"]
-        y = data["y"]
-        X_test = data["X_test"]
-        y_test_true = data["y_test_true"]
-        X_denoised = data["X_denoised"]
-        y_denoised = data["y_denoised"]
-
-        mlflow.log_param("seed", seed)
-        mlflow.log_param("train.size", len(X))
-
-        log_array(X, "X")
-        log_array(y, "y")
-        log_array(X_test, "X_test")
-        log_array(y_test_true, "y_test_true")
-        log_array(X_denoised, "X_denoised")
-        log_array(y_denoised, "y_denoised")
-
-        estimator = XCSF(params)
-
-        if standardize:
-            estimator = make_pipeline(
-                StandardScaler(),
-                TransformedTargetRegressor(regressor=estimator,
-                                           transformer=StandardScaler()))
-
-        estimator.fit(X, y)
-
-        # make predictions for test data
-        y_test = estimator.predict(X_test)
-
-        # TODO get unmixed classifier predictions
-
-        log_array(y_test, "y_test")
-
-        # get metrics
-        mae = metrics.mean_absolute_error(y_test_true, y_test)
-        mse = metrics.mean_squared_error(y_test_true, y_test)
-        r2 = metrics.r2_score(y_test_true, y_test)
-        mlflow.log_metric("mae", mae, params["MAX_TRIALS"])
-        mlflow.log_metric("mse", mse, params["MAX_TRIALS"])
-        mlflow.log_metric("r2-score", r2, params["MAX_TRIALS"])
-
-        mlflow.log_metric("size", estimator.xcs_.pset_size())
-
-        # store the model, you never know when you need it
-        f = tempfile.NamedTemporaryFile(prefix=f"model-", suffix=f".model")
-        estimator.xcs_.save(f.name)
-        mlflow.log_artifact(f.name)
-        f.close()
-
-        pop = get_pop(estimator.xcs_)
-        utils.log_json(pop, "population")
-
-        fig, ax = plot_prediction(X=X,
-                                  y=y,
-                                  X_test=X_test,
-                                  y_test=y_test,
-                                  X_denoised=X_denoised,
-                                  y_denoised=y_denoised)
-        save_plot(fig, seed)
-
-        if show:
-            plt.show()
 
 
 def get_pop(xcs):
