@@ -1,6 +1,3 @@
-#! /usr/bin/env nix-shell
-#! nix-shell -i python -p "python38.withPackages(ps: with ps; [click])"
-
 import os
 import pathlib
 import shutil
