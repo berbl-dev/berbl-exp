@@ -137,6 +137,7 @@ def submit(node, time, mem, algorithm, module, standardize):
 
     njobs = n_reps * n_data_sets
 
+    standardize_option = '--standardize' if standardize else '--no-standardize'
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
         f'#SBATCH --nodelist={node}',
@@ -149,7 +150,7 @@ def submit(node, time, mem, algorithm, module, standardize):
             f'nix-shell "{job_dir}/shell.nix" --command '
             f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' '
             f'python -m run single {algorithm} {module} '
-            f'--standardize={standardize} '
+            f'{standardize_option} '
             # NOTE / is integer division in bash.
             f'--seed=$(({seed0} + $SLURM_ARRAY_TASK_ID / {n_data_sets})) '
             f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {n_data_sets}))"'
