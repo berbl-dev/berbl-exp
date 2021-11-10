@@ -135,7 +135,7 @@ def submit(node, time, mem, algorithm, module, standardize):
     os.makedirs("output", exist_ok=True)
     os.makedirs("jobs", exist_ok=True)
 
-    njobs = reps * data_sets
+    njobs = n_reps * n_data_sets
 
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
@@ -144,15 +144,15 @@ def submit(node, time, mem, algorithm, module, standardize):
         f'#SBATCH --mem={mem}',
         f'#SBATCH --partition=cpu',
         f'#SBATCH --output={job_dir}/output/output-%A-%a.txt',
-        f'#SBATCH --array=0-{reps - 1}',
+        f'#SBATCH --array=0-{n_reps - 1}',
         (
             f'nix-shell "{job_dir}/shell.nix" --command '
             f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' '
             f'python -m run single {algorithm} {module} '
             f'--standardize={standardize} '
             # NOTE / is integer division in bash.
-            f'--seed=$(({seed0} + $SLURM_ARRAY_TASK_ID / {data_sets})) '
-            f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {data_sets}))"'
+            f'--seed=$(({seed0} + $SLURM_ARRAY_TASK_ID / {n_data_sets})) '
+            f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {n_data_sets}))"'
         )
     ])
     print(sbatch)
