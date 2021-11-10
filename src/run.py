@@ -206,9 +206,36 @@ def slurm(node, time, mem):
         submit(node, time, mem, "xcsf", module, standardize=True)
 
 
+@click.command()
+@click.argument("NODE")
+@click.argument("ALGORITHM")
+@click.argument("MODULE")
+@click.option("-t",
+              "--time",
+              type=click.IntRange(min=10),
+              default=60,
+              help="Slurm's --time in minutes.",
+              show_default=True)
+@click.option("--mem",
+              type=click.IntRange(min=1),
+              default=100,
+              help="Slurm's --mem in megabytes.",
+              show_default=True)
+@click.option("--standardize/--no-standardize",
+              type=bool,
+              default=False,
+              show_default=True)
+def slurm1(node, algorithm, module, time, mem, standardize):
+    """
+    Submits a single experiment (running ALGORITHM on task MODULE) to NODE.
+    """
+    submit(node, time, mem, algorithm, module, standardize=standardize)
+
+
 main.add_command(single)
 main.add_command(all)
 main.add_command(slurm)
+main.add_command(slurm1)
 
 if __name__ == "__main__":
     main()
