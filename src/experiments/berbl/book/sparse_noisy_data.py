@@ -1,3 +1,4 @@
+task = "book.sparse_noisy_data"
 params = {
     "n": 4,
     "p": 0.5,

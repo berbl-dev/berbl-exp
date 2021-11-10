@@ -1,3 +1,4 @@
+task = "book.generated_function"
 params = {
     "n": 8,
     "p": 0.5,

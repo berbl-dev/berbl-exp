@@ -1,3 +1,4 @@
+task = "book.variable_noise"
 params = {
     "n": 8,
     "p": 0.5,

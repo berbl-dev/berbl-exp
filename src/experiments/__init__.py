@@ -39,13 +39,13 @@ class Experiment(abc.ABC):
 
         self.seed = seed
 
-        self.data = get_data(module, data_seed)
+        exp_path = f"experiments.{self.experiment_name}"
+        exp_mod = importlib.import_module(exp_path)
+        self.params = exp_mod.params
+
+        self.data = get_data(exp_mod.task, data_seed)
+
         self.standardize = standardize
-
-        param_path = f"experiments.{self.experiment_name}"
-        param_mod = importlib.import_module(param_path)
-        self.params = param_mod.params
-
         self.show = show
 
     def run(self, **kwargs):
@@ -54,6 +54,7 @@ class Experiment(abc.ABC):
 
         mlflow.set_experiment(self.experiment_name)
         with mlflow.start_run() as run:
+            print(f"Started experiment: {self.experiment_name}")
             X = self.data["X"]
             y = self.data["y"]
             X_test = self.data["X_test"]

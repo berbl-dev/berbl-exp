@@ -1,4 +1,5 @@
 # TODO Why do I only get a fitness of ~52 instead of Drugowitschs >100?
+task = "book.generated_function"
 params = {
     "n": 8,
     "p": 0.5,

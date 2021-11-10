@@ -70,7 +70,7 @@ data_seeds = range(n_reps, n_reps + n_data_sets)
 seed0 = 0
 data_seed0 = 0
 # Name of task and whether soft interval matching is used.
-berbl_tasks = [
+berbl_experiments = [
     "book.generated_function",
     "book.sparse_noisy_data",
     "book.noisy_sinus",
@@ -84,7 +84,7 @@ berbl_tasks = [
     "non_literal.noisy_sinus",
     "non_literal.variable_noise",
 ]
-xcsf_tasks = [
+xcsf_experiments = [
     "book.generated_function",
     "book.sparse_noisy_data",
     "book.noisy_sinus",
@@ -99,7 +99,7 @@ def all():
     """
     for data_seed in data_seeds:
         for seed in seeds:
-            for module in berbl_tasks:
+            for module in berbl_experiments:
                 exp = BERBLExperiment(module,
                                       seed,
                                       data_seed,
@@ -115,7 +115,7 @@ def all():
 
     for data_seed in data_seeds:
         for seed in seeds:
-            for module in xcsf_tasks:
+            for module in xcsf_experiments:
                 exp = XCSFExperiment(module,
                                      seed,
                                      data_seed,
@@ -200,10 +200,10 @@ def slurm(node, time, mem):
     """
     Submits all experiments to NODE.
     """
-    for module in berbl_tasks:
+    for module in berbl_experiments:
         submit(node, time, mem, "berbl", module, standardize=False)
         submit(node, time, mem, "berbl", module, standardize=True)
-    for module in xcsf_tasks:
+    for module in xcsf_experiments:
         submit(node, time, mem, "xcsf", module, standardize=True)
 
 
