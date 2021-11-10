@@ -195,7 +195,7 @@ def submit(node, time, mem, algorithm, module, standardize):
               default=100,
               help="Slurm's --mem in megabytes.",
               show_default=True)
-def slurm(node):
+def slurm(node, time, mem):
     """
     Submits all experiments to NODE.
     """
