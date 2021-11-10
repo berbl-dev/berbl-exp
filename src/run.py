@@ -219,7 +219,7 @@ def slurm(node, time, mem):
               show_default=True)
 @click.option("--mem",
               type=click.IntRange(min=1),
-              default=100,
+              default=1000,
               help="Slurm's --mem in megabytes.",
               show_default=True)
 @click.option("--standardize/--no-standardize",
