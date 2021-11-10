@@ -193,7 +193,7 @@ def submit(node, time, mem, algorithm, module, standardize):
               show_default=True)
 @click.option("--mem",
               type=click.IntRange(min=1),
-              default=100,
+              default=1000,
               help="Slurm's --mem in megabytes.",
               show_default=True)
 def slurm(node, time, mem):
