@@ -154,7 +154,6 @@ in pkgs.mkShell rec {
     pip install pystan==2.19.1.1
   '';
   postShellHook = ''
-    export LD_LIBRARY_PATH=${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH
     export PYTHONPATH=$PWD/${venvDir}/${python.sitePackages}/:${python}/${python.sitePackages}:$PYTHONPATH
   '';
 }
