@@ -38,15 +38,9 @@ class XCSFExperiment(Experiment):
         mlflow.log_metric("mse", mse, self.params["MAX_TRIALS"])
         mlflow.log_metric("r2-score", r2, self.params["MAX_TRIALS"])
 
-        mlflow.log_metric("size", self.estimator.xcs_.pset_size())
+        mlflow.log_metric("size", self.learner_.xcs_.pset_size())
 
-        # store the model, you never know when you need it
-        f = tempfile.NamedTemporaryFile(prefix=f"model-", suffix=f".model")
-        self.estimator.xcs_.save(f.name)
-        mlflow.log_artifact(f.name)
-        f.close()
-
-        pop = get_pop(self.estimator.xcs_)
+        pop = self.learner_.population()
         utils.log_json(pop, "population")
 
         fig, ax = plot_prediction(X=X,
@@ -215,15 +209,6 @@ def parse_pop(s):
     return res
 
 
-def get_pop(xcs):
-    out = io.BytesIO()
-    with utils.stdout_redirector(out):
-        xcs.print_pset(True, True, True)
-
-    pop = parse_pop(out.getvalue().decode("utf-8"))
-    return pop
-
-
 class XCSF(BaseEstimator, RegressorMixin):
     """
     Almost a correct sklearn wrapper for ``xcsf.XCS``. For example, it can't yet
@@ -290,3 +275,13 @@ class XCSF(BaseEstimator, RegressorMixin):
         X = check_array(X)
 
         return self.xcs_.predict(X)
+
+    def population(self):
+        check_is_fitted(self)
+
+        out = io.BytesIO()
+        with utils.stdout_redirector(out):
+            self.xcs_.print_pset(True, True, True)
+
+        pop = parse_pop(out.getvalue().decode("utf-8"))
+        return pop

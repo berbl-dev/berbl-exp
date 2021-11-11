@@ -1,13 +1,12 @@
 import abc
 import importlib
 
-import matplotlib.pyplot  # type: ignore
 import mlflow  # type: ignore
-import numpy  # type: ignore
+import sklearn.compose as compose  # type: ignore
+import sklearn.pipeline as pipeline  # type: ignore
 from experiments.utils import log_array
-from sklearn.compose import TransformedTargetRegressor  # type: ignore
-from sklearn.pipeline import Pipeline  # type: ignore
-from sklearn.preprocessing import StandardScaler  # type: ignore
+from sklearn.preprocessing import StandardScaler  # type: ignore; type: ignore
+from sklearn.utils.validation import check_is_fitted  # type: ignore; type: ignore
 
 
 def get_data(module, data_seed):
@@ -27,13 +26,55 @@ def maybe_override(params, param, value):
         params[param] = value
 
 
-class GenerativePipeline(Pipeline):
+class StandardScaledTargetRegressor(compose.TransformedTargetRegressor):
+    """
+    A ``TransformedTargetRegressor`` that uses ``transformer=StandardScaler``.
+
+    Adds (and passes through the pipeline to its final step)
+    ``predict_mean_var``, ``predicts``, ``predict_distribution``. Note that
+    ``predict_mean_var`` and ``predict_distribution`` are different for
+    different transformers which is why ``StandardScaler`` is fixed here.
+    """
+    def __init__(self, regressor=None):
+        super().__init__(regressor=regressor, transformer=StandardScaler())
+
+    def predict_mean_var(self, X, **predict_mean_var_params):
+        check_is_fitted(self)
+        y = self.predict(X)
+        var = (self.transformer_.scale_**2
+               * self.regressor_.predict_mean_var(X))[1]
+        return y, var
+
+    def predicts(self, X, **predicts_params):
+        check_is_fitted(self)
+        # TODO Note that we don't have the same resize/squeeze stuff in place
+        # here as in
+        # https://github.com/scikit-learn/scikit-learn/blob/0d378913b/sklearn/compose/_target.py#L275
+        ys = self.regressor_.predicts(X, **predicts_params)
+        return self.transformer_.inverse_transform(ys)
+
+    def predict_distribution(self, X, **predict_distribution_params):
+        ...
+        # TODO add predict_distribution from notes
+
+
+class Pipeline(pipeline.Pipeline):
+    """"
+    Adds (and passes through the pipeline to its final step)
+    ``predict_mean_var``, ``predicts``, ``predict_distribution``.
+    """
     def predict_mean_var(self, X, **predict_mean_var_params):
         Xt = X
         for _, name, transform in self._iter(with_final=False):
             Xt = transform.transform(Xt)
         return self.steps[-1][1].predict_mean_var(Xt,
                                                   **predict_mean_var_params)
+
+    def predicts(self, X, **predicts_params):
+        Xt = X
+        for _, name, transform in self._iter(with_final=False):
+            Xt = transform.transform(Xt)
+        return self.steps[-1][1].predicts(Xt, **predicts_params)
 
     def predict_distribution(self, X, **predict_distribution_params):
         Xt = X
@@ -44,9 +85,20 @@ class GenerativePipeline(Pipeline):
 
 
 class Experiment(abc.ABC):
+    """
+    Attributes
+    ----------
+    learner_ : object
+        After fitting, a reference to the fitted learner central to this
+        experiment (useful for extracting the population, its size, fitness
+        values etc.).
+    """
     @property
     @abc.abstractmethod
     def algorithm(self):
+        """
+        The algorithm that this experiment uses for learning.
+        """
         pass
 
     def __init__(self, module, seed, data_seed, standardize, show):
@@ -91,22 +143,31 @@ class Experiment(abc.ABC):
             self.init_estimator()
 
             if self.standardize:
-                self.estimator = GenerativePipeline([
+                self.estimator = Pipeline([
                     ("standardscaler", StandardScaler()),
                     ("transfromedtargetregressor",
-                     TransformedTargetRegressor(regressor=self.estimator,
-                                                transformer=StandardScaler()))
+                     StandardScaledTargetRegressor(regressor=self.estimator))
                 ])
+            else:
+                self.estimator = Pipeline([("transfromedtargetregressor",
+                                            compose.TransformedTargetRegressor(
+                                                regressor=self.estimator,
+                                                func=None))])
 
-            self.estimator.fit(X, y)
+            self.estimator = self.estimator.fit(X, y)
 
+            self.learner_ = self.estimator[-1].regressor_
+
+            # TODO Consider to provide learner_ to evaluate for clarity
             self.evaluate(X, y, X_test, y_test_true, X_denoised, y_denoised)
 
     @abc.abstractmethod
     def init_estimator(self):
+        # TODO Consider providing seed to init_estimator for clarity
         # Use self.seed here!
         self.estimator = ...
 
     @abc.abstractmethod
     def evaluate(self, X, y, X_test, y_test_true, X_denoised, y_denoised):
+        # TODO Consider to provide learner_ to evaluate for clarity
         ...

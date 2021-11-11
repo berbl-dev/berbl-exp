@@ -57,9 +57,9 @@ class BERBLExperiment(Experiment):
         # two additional statistics to maybe better gauge solution performance
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
-        mlflow.log_metric("elitist.size", self.estimator.search_.size_[0],
+        mlflow.log_metric("elitist.size", self.learner_.search_.size_[0],
                           self.n_iter)
-        mlflow.log_metric("elitist.p_M_D", self.estimator.search_.p_M_D_[0],
+        mlflow.log_metric("elitist.p_M_D", self.learner_.search_.p_M_D_[0],
                           self.n_iter)
         mlflow.log_metric("elitist.mse", mse, self.n_iter)
         mlflow.log_metric("elitist.r2-score", r2, self.n_iter)
@@ -78,8 +78,8 @@ class BERBLExperiment(Experiment):
                                   y_denoised=y_denoised)
 
         plot_cls(X=X, y=y_cls, ax=ax)
-        add_title(ax, self.estimator.search_.size_[0],
-                  self.estimator.search_.p_M_D_[0], mse, r2)
+        add_title(ax, self.learner_.search_.size_[0],
+                  self.learner_.search_.p_M_D_[0], mse, r2)
         save_plot(fig, self.seed)
 
         if self.show:
