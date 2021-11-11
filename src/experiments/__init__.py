@@ -6,7 +6,7 @@ import mlflow  # type: ignore
 import numpy  # type: ignore
 from experiments.utils import log_array
 from sklearn.compose import TransformedTargetRegressor  # type: ignore
-from sklearn.pipeline import make_pipeline  # type: ignore
+from sklearn.pipeline import Pipeline  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
 
 
@@ -26,6 +26,21 @@ def maybe_override(params, param, value):
               f"{param}={value}")
         params[param] = value
 
+
+class GenerativePipeline(Pipeline):
+    def predict_mean_var(self, X, **predict_mean_var_params):
+        Xt = X
+        for _, name, transform in self._iter(with_final=False):
+            Xt = transform.transform(Xt)
+        return self.steps[-1][1].predict_mean_var(Xt,
+                                                  **predict_mean_var_params)
+
+    def predict_distribution(self, X, **predict_distribution_params):
+        Xt = X
+        for _, name, transform in self._iter(with_final=False):
+            Xt = transform.transform(Xt)
+        return self.steps[-1][1].predict_distribution(
+            Xt, **predict_distribution_params)
 
 
 class Experiment(abc.ABC):
@@ -76,10 +91,12 @@ class Experiment(abc.ABC):
             self.init_estimator()
 
             if self.standardize:
-                self.estimator = make_pipeline(
-                    StandardScaler(),
-                    TransformedTargetRegressor(regressor=self.estimator,
-                                               transformer=StandardScaler()))
+                self.estimator = GenerativePipeline([
+                    ("standardscaler", StandardScaler()),
+                    ("transfromedtargetregressor",
+                     TransformedTargetRegressor(regressor=self.estimator,
+                                                transformer=StandardScaler()))
+                ])
 
             self.estimator.fit(X, y)
 
