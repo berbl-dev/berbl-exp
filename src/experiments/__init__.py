@@ -26,6 +26,31 @@ def maybe_override(params, param, value):
         params[param] = value
 
 
+class IdentityTargetRegressor(compose.TransformedTargetRegressor):
+    """
+    A ``TransformedTargetRegressor`` that uses ``func=None`` (i.e. identity).
+
+    Adds (and passes through the pipeline to its final step)
+    ``predict_mean_var``, ``predicts``, ``predict_distribution``.
+    """
+    def __init__(self, regressor=None):
+        super().__init__(regressor=regressor, func=None)
+
+    def predict_mean_var(self, X, **predict_mean_var_params):
+        check_is_fitted(self)
+        return self.regressor_.predict_mean_var(X)
+
+    def predicts(self, X, **predicts_params):
+        check_is_fitted(self)
+        # TODO Note that we don't have the same resize/squeeze stuff in place
+        # here as in
+        # https://github.com/scikit-learn/scikit-learn/blob/0d378913b/sklearn/compose/_target.py#L275
+        return self.regressor_.predicts(X, **predicts_params)
+
+    def predict_distribution(self, X, **predict_distribution_params):
+        return self.regressor_.predict_distribution(X, **predicts_params)
+
+
 class StandardScaledTargetRegressor(compose.TransformedTargetRegressor):
     """
     A ``TransformedTargetRegressor`` that uses ``transformer=StandardScaler``.
@@ -149,10 +174,10 @@ class Experiment(abc.ABC):
                      StandardScaledTargetRegressor(regressor=self.estimator))
                 ])
             else:
-                self.estimator = Pipeline([("transfromedtargetregressor",
-                                            compose.TransformedTargetRegressor(
-                                                regressor=self.estimator,
-                                                func=None))])
+                self.estimator = Pipeline([
+                    ("transfromedtargetregressor",
+                     IdentityTargetRegressor(regressor=self.estimator))
+                ])
 
             self.estimator = self.estimator.fit(X, y)
 
