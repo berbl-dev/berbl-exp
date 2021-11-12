@@ -157,7 +157,7 @@ def submit(node, time, mem, algorithm, module, standardize):
             # NOTE / is integer division in bash.
             f'--seed=$(({seed0} + $SLURM_ARRAY_TASK_ID / {n_data_sets})) '
             f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {n_data_sets}))"'
-            f'--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"')
+            '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"')
     ])
     print(sbatch)
     print()
