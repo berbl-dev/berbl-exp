@@ -145,7 +145,7 @@ def submit(node, time, mem, algorithm, module, standardize):
         f'#SBATCH --mem={mem}',
         f'#SBATCH --partition=cpu',
         f'#SBATCH --output={job_dir}/output/output-%A-%a.txt',
-        f'#SBATCH --array=0-{n_reps - 1}',
+        f'#SBATCH --array=0-{njobs - 1}',
         (
             f'nix-shell "{job_dir}/shell.nix" --command '
             f'"PYTHONPATH=\'{job_dir}/src:$PYTHONPATH\' '
