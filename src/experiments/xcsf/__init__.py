@@ -167,48 +167,6 @@ def default_xcs_params():
     return get_xcs_params(xcs)
 
 
-def parse_pop(s):
-    """
-    Parses the output of XCSF's ```print_pset()```.
-
-    For now, only rectangular conditions are supported.
-    """
-    num = pp.pyparsing_common.number
-    sup = pp.Suppress
-
-    header = sup("***********************************************\n")
-
-    condition = pp.Group(
-        pp.MatchFirst([
-            sup("CONDITION\nrectangle: (l=") + num.set_results_name("lower")
-            + sup(", u=") + num.set_results_name("upper") + sup(")\n"),
-            sup("CONDITION\nrectangle: (c=") + num.set_results_name("center")
-            + sup(", s=") + num.set_results_name("spread") + sup(")\n"),
-        ])).set_results_name("condition")
-
-    predictor = pp.Group(
-        sup("PREDICTOR\nRLS weights: ") + num + sup(", ") + num
-        + sup(",")).set_results_name("prediction")
-
-    action = (sup("ACTION\n") + num.set_results_name("action"))
-
-    parameters = pp.Group(
-        sup("err=") + num.set_results_name("error") + sup("fit=")
-        + num.set_results_name("fitness") + sup("num=")
-        + num.set_results_name("numerosity") + sup("exp=")
-        + num.set_results_name("experience") + sup("size=") + num
-        + sup("time=") + num + sup("age=") + num + sup("mfrac=")
-        + num).set_results_name("parameters")
-
-    rule = pp.Group(header + condition + predictor + action + parameters)
-
-    rules = pp.OneOrMore(rule)
-
-    res = [x.as_dict() for x in rules.parse_string(s)]
-
-    return res
-
-
 class XCSF(BaseEstimator, RegressorMixin):
     """
     Almost a correct sklearn wrapper for ``xcsf.XCS``. For example, it can't yet
