@@ -126,7 +126,7 @@ class Experiment(abc.ABC):
         """
         pass
 
-    def __init__(self, module, seed, data_seed, standardize, show):
+    def __init__(self, module, seed, data_seed, standardize, show, run_name=None):
         self.experiment_name = experiment_name(self.algorithm, module)
 
         self.seed = seed
@@ -135,18 +135,24 @@ class Experiment(abc.ABC):
         exp_mod = importlib.import_module(exp_path)
         self.params = exp_mod.params
 
+        self.data_seed = data_seed
         self.data = get_data(exp_mod.task, data_seed)
 
         self.standardize = standardize
         self.show = show
+        self.run_name = run_name
 
     def run(self, **kwargs):
         for key in kwargs:
             maybe_override(self.params, key, kwargs[key])
 
         mlflow.set_experiment(self.experiment_name)
-        with mlflow.start_run() as run:
+        with mlflow.start_run(run_name=self.run_name) as run:
             print(f"Started experiment: {self.experiment_name}")
+            print(f"Run name: {self.run_name}")
+            print(f"Seed: {self.seed}")
+            print(f"Data seed: {self.data_seed}")
+
             X = self.data["X"]
             y = self.data["y"]
             X_test = self.data["X_test"]
@@ -170,12 +176,12 @@ class Experiment(abc.ABC):
             if self.standardize:
                 self.estimator = Pipeline([
                     ("standardscaler", StandardScaler()),
-                    ("transfromedtargetregressor",
+                    ("standardscaledtargetregressor",
                      StandardScaledTargetRegressor(regressor=self.estimator))
                 ])
             else:
                 self.estimator = Pipeline([
-                    ("transfromedtargetregressor",
+                    ("identitytargetregressor",
                      IdentityTargetRegressor(regressor=self.estimator))
                 ])
 

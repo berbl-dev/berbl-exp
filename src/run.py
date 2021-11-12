@@ -37,9 +37,10 @@ def main():
 @click.option("--literal/--no-literal", type=bool, default=None)
 @click.option("--match", type=str, default=None)
 # only applicable to XCSF
-@click.option("-p", "--pop_size", type=click.IntRange(min=1), default=100)
+@click.option("-p", "--pop-size", type=click.IntRange(min=1), default=100)
+@click.option("--run-name", type=str, default=None)
 def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
-           fit_mix, literal, match, pop_size):
+           fit_mix, literal, match, pop_size, run_name):
     """
     Use ALGORITHM ("berbl" or "xcsf") in an experiment defined by MODULE
     (module path appended to "experiments.ALGORITHM.").
@@ -50,13 +51,15 @@ def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
         exit(1)
 
     if algorithm == "berbl":
-        exp = BERBLExperiment(module, seed, data_seed, standardize, show)
+        exp = BERBLExperiment(module, seed, data_seed, standardize, show,
+                              run_name)
         exp.run(n_iter=n_iter,
                 match=match,
                 literal=literal,
                 fit_mixing=fit_mix)
     elif algorithm == "xcsf":
-        exp = XCSFExperiment(module, seed, data_seed, standardize, show)
+        exp = XCSFExperiment(module, seed, data_seed, standardize, show,
+                             run_name)
         exp.run(MAX_TRIALS=n_iter)
         # TODO Optimize parameters for each experiment
     else:
@@ -154,7 +157,7 @@ def submit(node, time, mem, algorithm, module, standardize):
             # NOTE / is integer division in bash.
             f'--seed=$(({seed0} + $SLURM_ARRAY_TASK_ID / {n_data_sets})) '
             f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {n_data_sets}))"'
-        )
+            f'--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"')
     ])
     print(sbatch)
     print()
