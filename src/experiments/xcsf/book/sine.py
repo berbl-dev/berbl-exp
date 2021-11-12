@@ -1,6 +1,6 @@
 from .. import default_xcs_params
 
-task = "book.noisy_sine"
+task = "book.sine"
 
 # TODO Use proper parameter settings
 params = default_xcs_params() | {

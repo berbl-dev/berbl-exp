@@ -73,7 +73,7 @@ data_seed0 = 0
 berbl_experiments = [
     "book.generated_function",
     "book.sparse_noisy_data",
-    "book.noisy_sinus",
+    "book.sine",
     "book.variable_noise",
     # Not in the book but required for fairer comparison with XCSF.
     "additional_literal.generated_function",
@@ -81,13 +81,13 @@ berbl_experiments = [
     # Expected to behave the same as the literal implementation.
     "non_literal.generated_function",
     "non_literal.sparse_noisy_data",
-    "non_literal.noisy_sinus",
+    "non_literal.sine",
     "non_literal.variable_noise",
 ]
 xcsf_experiments = [
     "book.generated_function",
     "book.sparse_noisy_data",
-    "book.noisy_sinus",
+    "book.sine",
     "book.variable_noise",
 ]
 

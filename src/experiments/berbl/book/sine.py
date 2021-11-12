@@ -1,4 +1,4 @@
-task = "book.noisy_sinus"
+task = "book.sine"
 params = {
     "n": 8,
     "p": 0.5,
