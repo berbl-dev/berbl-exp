@@ -283,5 +283,5 @@ class XCSF(BaseEstimator, RegressorMixin):
         with utils.stdout_redirector(out):
             self.xcs_.print_pset(True, True, True)
 
-        pop = parse_pop(out.getvalue().decode("utf-8"))
+        pop = out.getvalue().decode("utf-8")
         return pop

@@ -145,15 +145,14 @@ let
     ]));
 in pkgs.mkShell rec {
   venvDir = ".venv";
-  packages = with pkgs; [
-    python3Packages.venvShellHook
-    python
-  ];
+  packages = with pkgs; [ python3Packages.venvShellHook python ];
   postVenvCreation = ''
     unset SOURCE_DATE_EPOCH
     pip install pystan==2.19.1.1
   '';
+  # NOTE We first search pure Nix Python packages and then the venv. Otherwise
+  # the venv numpy is used which seems to not be able to find zlib.
   postShellHook = ''
-    export PYTHONPATH=$PWD/${venvDir}/${python.sitePackages}/:${python}/${python.sitePackages}:$PYTHONPATH
+    export PYTHONPATH=${python}/${python.sitePackages}:$PWD/${venvDir}/${python.sitePackages}/:$PYTHONPATH
   '';
 }

@@ -5,7 +5,8 @@ toPythonModule (stdenv.mkDerivation rec {
   pname = "xcsf";
   version = "1.1.1";
 
-  src = ./xcsf-v.1.1.1-incl-submodules.tar.gz;
+  src = ./xcsf-v.1.1.2-incl-submodules.tar.gz;
+  # src = /home/david/Code/xcsf;
 
   nativeBuildInputs = [ cmake ];
 
