@@ -1,5 +1,6 @@
 import abc
 import importlib
+import os
 
 import mlflow  # type: ignore
 import sklearn.compose as compose  # type: ignore
@@ -146,6 +147,7 @@ class Experiment(abc.ABC):
         for key in kwargs:
             maybe_override(self.params, key, kwargs[key])
 
+        mlflow.set_tracking_uri(f"sqlite:///{os.getcwd()}/mlruns.db")
         mlflow.set_experiment(self.experiment_name)
         with mlflow.start_run(run_name=self.run_name) as run:
             print(f"Started experiment: {self.experiment_name}")
