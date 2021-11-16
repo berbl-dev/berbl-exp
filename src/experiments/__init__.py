@@ -1,14 +1,12 @@
 import abc
 import importlib
-import os
 
 import mlflow  # type: ignore
 import sklearn.compose as compose  # type: ignore
 import sklearn.pipeline as pipeline  # type: ignore
 from experiments.utils import log_array
-from sklearn.preprocessing import StandardScaler  # type: ignore; type: ignore
-from sklearn.utils.validation import check_is_fitted  # type: ignore; type: ignore
-
+from sklearn.preprocessing import StandardScaler  # type: ignore
+from sklearn.utils.validation import check_is_fitted  # type: ignore
 
 def get_data(module, data_seed):
     task_path = f"tasks.{module}"
@@ -127,7 +125,15 @@ class Experiment(abc.ABC):
         """
         pass
 
-    def __init__(self, module, seed, data_seed, standardize, show, run_name=None):
+    def __init__(self,
+                 module,
+                 seed,
+                 data_seed,
+                 standardize,
+                 show,
+                 run_name=None,
+                 tracking_uri="sqlite:///mlflow.db",
+                 artifact_store="mlflow/"):
         self.experiment_name = experiment_name(self.algorithm, module)
 
         self.seed = seed
@@ -143,11 +149,14 @@ class Experiment(abc.ABC):
         self.show = show
         self.run_name = run_name
 
+        self.tracking_uri = tracking_uri
+        self.artifact_store = artifact_store
+        mlflow.set_tracking_uri(self.tracking_uri)
+
     def run(self, **kwargs):
         for key in kwargs:
             maybe_override(self.params, key, kwargs[key])
 
-        mlflow.set_tracking_uri(f"sqlite:///{os.getcwd()}/mlruns.db")
         mlflow.set_experiment(self.experiment_name)
         with mlflow.start_run(run_name=self.run_name) as run:
             print(f"Started experiment: {self.experiment_name}")

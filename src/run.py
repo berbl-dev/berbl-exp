@@ -39,8 +39,10 @@ def main():
 # only applicable to XCSF
 @click.option("-p", "--pop-size", type=click.IntRange(min=1), default=100)
 @click.option("--run-name", type=str, default=None)
+# TODO Extract tracking-uri option to context
+@click.option("--tracking-uri", type=str, default="sqlite:///mlflow.db")
 def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
-           fit_mix, literal, match, pop_size, run_name):
+           fit_mix, literal, match, pop_size, run_name, tracking_uri):
     """
     Use ALGORITHM ("berbl" or "xcsf") in an experiment defined by MODULE
     (module path appended to "experiments.ALGORITHM.").
@@ -52,14 +54,14 @@ def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
 
     if algorithm == "berbl":
         exp = BERBLExperiment(module, seed, data_seed, standardize, show,
-                              run_name)
+                              run_name, tracking_uri)
         exp.run(n_iter=n_iter,
                 match=match,
                 literal=literal,
                 fit_mixing=fit_mix)
     elif algorithm == "xcsf":
         exp = XCSFExperiment(module, seed, data_seed, standardize, show,
-                             run_name)
+                             run_name, tracking_uri)
         exp.run(MAX_TRIALS=n_iter)
         # TODO Optimize parameters for each experiment
     else:
@@ -96,7 +98,8 @@ xcsf_experiments = [
 
 
 @click.command()
-def all():
+@click.option("--tracking-uri", type=str, default="sqlite:///mlflow.db")
+def all(tracking_uri):
     """
     Runs all the experiments in sequence.
     """
@@ -107,13 +110,15 @@ def all():
                                       seed,
                                       data_seed,
                                       standardize=False,
-                                      show=False)
+                                      show=False,
+                                      tracking_uri=tracking_uri)
                 exp.run()
                 exp = BERBLExperiment(module,
                                       seed,
                                       data_seed,
                                       standardize=True,
-                                      show=False)
+                                      show=False,
+                                      tracking_uri=tracking_uri)
                 exp.run()
 
     for data_seed in data_seeds:
@@ -123,7 +128,8 @@ def all():
                                      seed,
                                      data_seed,
                                      standardize=True,
-                                     show=False)
+                                     show=False,
+                                     tracking_uri=tracking_uri)
                 exp.run()
                 # TODO Optimize parameters for each experiment
 
@@ -157,7 +163,9 @@ def submit(node, time, mem, algorithm, module, standardize):
             # NOTE / is integer division in bash.
             f'--seed=$(({seed0} + $SLURM_ARRAY_TASK_ID / {n_data_sets})) '
             f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {n_data_sets})) '
-            '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"')
+            '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} '
+            f'--tracking-uri={tracking_uri}"'
+        )
     ])
     print(sbatch)
     print()
@@ -199,15 +207,34 @@ def submit(node, time, mem, algorithm, module, standardize):
               default=1000,
               help="Slurm's --mem in megabytes.",
               show_default=True)
-def slurm(node, time, mem):
+@click.option("--tracking-uri", type=str, default="sqlite:///mlflow.db")
+def slurm(node, time, mem, tracking_uri):
     """
     Submits all experiments to NODE.
     """
     for module in berbl_experiments:
-        submit(node, time, mem, "berbl", module, standardize=False)
-        submit(node, time, mem, "berbl", module, standardize=True)
+        submit(node,
+               time,
+               mem,
+               "berbl",
+               module,
+               standardize=False,
+               tracking_uri=tracking_uri)
+        submit(node,
+               time,
+               mem,
+               "berbl",
+               module,
+               standardize=True,
+               tracking_uri=tracking_uri)
     for module in xcsf_experiments:
-        submit(node, time, mem, "xcsf", module, standardize=True)
+        submit(node,
+               time,
+               mem,
+               "xcsf",
+               module,
+               standardize=True,
+               tracking_uri=tracking_uri)
 
 
 @click.command()
@@ -229,11 +256,18 @@ def slurm(node, time, mem):
               type=bool,
               default=False,
               show_default=True)
-def slurm1(node, algorithm, module, time, mem, standardize):
+@click.option("--tracking-uri", type=str, default="sqlite:///mlflow.db")
+def slurm1(node, algorithm, module, time, mem, standardize, tracking_uri):
     """
     Submits a single experiment (running ALGORITHM on task MODULE) to NODE.
     """
-    submit(node, time, mem, algorithm, module, standardize=standardize)
+    submit(node,
+           time,
+           mem,
+           algorithm,
+           module,
+           standardize=standardize,
+           tracking_uri=tracking_uri)
 
 
 main.add_command(single)
