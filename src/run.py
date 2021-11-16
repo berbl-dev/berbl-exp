@@ -136,7 +136,7 @@ def all(tracking_uri):
     # TODO Store run IDs somewhere and then use them in eval
 
 
-def submit(node, time, mem, algorithm, module, standardize):
+def submit(node, time, mem, algorithm, module, standardize, tracking_uri):
     """
     Submit one ``single(…)`` job to the cluster for each repetition.
     """
