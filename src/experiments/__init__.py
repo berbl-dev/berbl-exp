@@ -132,7 +132,7 @@ class Experiment(abc.ABC):
                  standardize,
                  show,
                  run_name=None,
-                 tracking_uri="sqlite:///mlflow.db",
+                 tracking_uri="mlflow/",
                  artifact_store="mlflow/"):
         self.experiment_name = experiment_name(self.algorithm, module)
 
