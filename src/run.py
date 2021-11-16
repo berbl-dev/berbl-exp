@@ -40,7 +40,7 @@ def main():
 @click.option("-p", "--pop-size", type=click.IntRange(min=1), default=100)
 @click.option("--run-name", type=str, default=None)
 # TODO Extract tracking-uri option to context
-@click.option("--tracking-uri", type=str, default="mlflow")
+@click.option("--tracking-uri", type=str, default="mlruns")
 def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
            fit_mix, literal, match, pop_size, run_name, tracking_uri):
     """
@@ -98,7 +98,7 @@ xcsf_experiments = [
 
 
 @click.command()
-@click.option("--tracking-uri", type=str, default="mlflow")
+@click.option("--tracking-uri", type=str, default="mlruns")
 def all(tracking_uri):
     """
     Runs all the experiments in sequence.
@@ -207,7 +207,7 @@ def submit(node, time, mem, algorithm, module, standardize, tracking_uri):
               default=1000,
               help="Slurm's --mem in megabytes.",
               show_default=True)
-@click.option("--tracking-uri", type=str, default="mlflow")
+@click.option("--tracking-uri", type=str, default="mlruns")
 def slurm(node, time, mem, tracking_uri):
     """
     Submits all experiments to NODE.
@@ -256,7 +256,7 @@ def slurm(node, time, mem, tracking_uri):
               type=bool,
               default=False,
               show_default=True)
-@click.option("--tracking-uri", type=str, default="mlflow")
+@click.option("--tracking-uri", type=str, default="mlruns")
 def slurm1(node, algorithm, module, time, mem, standardize, tracking_uri):
     """
     Submits a single experiment (running ALGORITHM on task MODULE) to NODE.
