@@ -7,6 +7,7 @@ from subprocess import PIPE, Popen
 import click
 from experiments.berbl import BERBLExperiment
 from experiments.xcsf import XCSFExperiment
+from experiments.xcsf.parameter_search import param_grid
 
 
 @click.group()
@@ -38,11 +39,14 @@ def main():
 @click.option("--match", type=str, default=None)
 # only applicable to XCSF
 @click.option("-p", "--pop-size", type=click.IntRange(min=1), default=100)
+@click.option("--epsilon-zero", type=float, default=0.01)
+@click.option("--beta", type=float, default=0.01)
 @click.option("--run-name", type=str, default=None)
 # TODO Extract tracking-uri option to context
 @click.option("--tracking-uri", type=str, default="mlruns")
 def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
-           fit_mix, literal, match, pop_size, run_name, tracking_uri):
+           fit_mix, literal, match, pop_size, epsilon_zero, beta, run_name,
+           tracking_uri):
     """
     Use ALGORITHM ("berbl" or "xcsf") in an experiment defined by MODULE
     (module path appended to "experiments.ALGORITHM.").
@@ -62,7 +66,10 @@ def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
     elif algorithm == "xcsf":
         exp = XCSFExperiment(module, seed, data_seed, standardize, show,
                              run_name, tracking_uri)
-        exp.run(MAX_TRIALS=n_iter)
+        exp.run(MAX_TRIALS=n_iter,
+                POP_SIZE=pop_size,
+                E0=epsilon_zero,
+                BETA=beta)
         # TODO Optimize parameters for each experiment
     else:
         print(f"Algorithm {algorithm} not one of [berbl, xcsf].")
@@ -136,7 +143,14 @@ def all(tracking_uri):
     # TODO Store run IDs somewhere and then use them in eval
 
 
-def submit(node, time, mem, algorithm, module, standardize, tracking_uri):
+def submit(node,
+           time,
+           mem,
+           algorithm,
+           module,
+           standardize,
+           tracking_uri,
+           params=""):
     """
     Submit one ``single(…)`` job to the cluster for each repetition.
     """
@@ -164,8 +178,8 @@ def submit(node, time, mem, algorithm, module, standardize, tracking_uri):
             f'--seed=$(({seed0} + $SLURM_ARRAY_TASK_ID / {n_data_sets})) '
             f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {n_data_sets})) '
             '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} '
-            f'--tracking-uri={tracking_uri}"'
-        )
+            f'--tracking-uri={tracking_uri} '
+            f'{params}"')
     ])
     print(sbatch)
     print()
@@ -270,6 +284,40 @@ def slurm1(node, algorithm, module, time, mem, standardize, tracking_uri):
            tracking_uri=tracking_uri)
 
 
+def make_param_string(params):
+    return (f"--pop-size={params['POP_SIZE']} "
+            f"--epsilon_zero={params['E0']} "
+            f"--beta={params['BETA']}")
+
+
+@click.command()
+@click.argument("NODE")
+@click.option("-t",
+              "--time",
+              type=click.IntRange(min=10),
+              default=60,
+              help="Slurm's --time in minutes.",
+              show_default=True)
+@click.option("--mem",
+              type=click.IntRange(min=1),
+              default=1000,
+              help="Slurm's --mem in megabytes.",
+              show_default=True)
+@click.option("--tracking-uri", type=str, default="mlruns")
+def paramsearch(node, time, mem, tracking_uri):
+    for module in xcsf_experiments:
+        for params in param_grid:
+            submit(node,
+                   time,
+                   mem,
+                   "xcsf",
+                   module,
+                   standardize=True,
+                   tracking_uri=tracking_uri,
+                   params=make_param_string(params))
+
+
+main.add_command(paramsearch)
 main.add_command(single)
 main.add_command(all)
 main.add_command(slurm)
