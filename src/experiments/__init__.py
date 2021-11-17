@@ -132,8 +132,7 @@ class Experiment(abc.ABC):
                  standardize,
                  show,
                  run_name=None,
-                 tracking_uri="mlflow/",
-                 artifact_store="mlflow/"):
+                 tracking_uri="mlflow/"):
         self.experiment_name = experiment_name(self.algorithm, module)
 
         self.seed = seed
@@ -150,7 +149,6 @@ class Experiment(abc.ABC):
         self.run_name = run_name
 
         self.tracking_uri = tracking_uri
-        self.artifact_store = artifact_store
         mlflow.set_tracking_uri(self.tracking_uri)
 
     def run(self, **kwargs):
