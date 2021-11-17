@@ -288,7 +288,7 @@ def slurm1(node, algorithm, module, time, mem, standardize, tracking_uri):
 
 def make_param_string(params):
     return (f"--pop-size={params['POP_SIZE']} "
-            f"--epsilon_zero={params['E0']} "
+            f"--epsilon-zero={params['E0']} "
             f"--beta={params['BETA']}")
 
 
