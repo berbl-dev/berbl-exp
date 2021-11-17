@@ -9,6 +9,8 @@ from experiments.berbl import BERBLExperiment
 from experiments.xcsf import XCSFExperiment
 from experiments.xcsf.parameter_search import param_grid
 
+# TODO Divide into submitter (does not need all dependencies) and runner (needs
+# all dependencies)
 
 @click.group()
 def main():
@@ -290,6 +292,7 @@ def make_param_string(params):
             f"--beta={params['BETA']}")
 
 
+# TODO Add sequential command for this, too
 @click.command()
 @click.argument("NODE")
 @click.option("-t",
