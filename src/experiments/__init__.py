@@ -169,6 +169,7 @@ class Experiment(abc.ABC):
             X_denoised = self.data["X_denoised"]
             y_denoised = self.data["y_denoised"]
 
+            mlflow.log_param("data.seed", self.data_seed)
             mlflow.log_param("seed", self.seed)
             mlflow.log_param("train.size", len(X))
             mlflow.log_param("standardize", self.standardize)
