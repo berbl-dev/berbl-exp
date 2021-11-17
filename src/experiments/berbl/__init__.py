@@ -54,13 +54,15 @@ class BERBLExperiment(Experiment):
         log_array(var, "var")
         log_array(np.hstack(y_cls), "y_cls")
 
-        # two additional statistics to maybe better gauge solution performance
+        # additional statistics to maybe better gauge solution performance
+        mae = metrics.mean_absolute_error(y_test_true, y_test)
         mse = metrics.mean_squared_error(y_test_true, y_test)
         r2 = metrics.r2_score(y_test_true, y_test)
         mlflow.log_metric("elitist.size", self.learner_.search_.size_[0],
                           self.n_iter)
         mlflow.log_metric("elitist.p_M_D", self.learner_.search_.p_M_D_[0],
                           self.n_iter)
+        mlflow.log_metric("elitist.mae", mae, self.n_iter)
         mlflow.log_metric("elitist.mse", mse, self.n_iter)
         mlflow.log_metric("elitist.r2-score", r2, self.n_iter)
 
