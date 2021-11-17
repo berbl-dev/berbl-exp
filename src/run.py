@@ -1,5 +1,6 @@
 import os
 import pathlib
+from time import sleep
 import shutil
 import tempfile
 from subprocess import PIPE, Popen
@@ -140,7 +141,6 @@ def all(tracking_uri):
                                      show=False,
                                      tracking_uri=tracking_uri)
                 exp.run()
-                # TODO Optimize parameters for each experiment
 
     # TODO Store run IDs somewhere and then use them in eval
 
@@ -181,7 +181,7 @@ def submit(node,
             f'--data-seed=$(({data_seed0} + $SLURM_ARRAY_TASK_ID % {n_data_sets})) '
             '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID} '
             f'--tracking-uri={tracking_uri} '
-            f'{params}"')
+            f'{params}"\n')
     ])
     print(sbatch)
     print()
@@ -309,6 +309,7 @@ def make_param_string(params):
 @click.option("--tracking-uri", type=str, default="mlruns")
 def paramsearch(node, time, mem, tracking_uri):
     for module in xcsf_experiments:
+        sleep(5)
         for params in param_grid:
             submit(node,
                    time,
