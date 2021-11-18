@@ -172,7 +172,7 @@ class XCSF(BaseEstimator, RegressorMixin):
     Almost a correct sklearn wrapper for ``xcsf.XCS``. For example, it can't yet
     be pickled.
     """
-    def __init__(self, params, random_state=None):
+    def __init__(self, params, random_state):
         self.params = params
         self.random_state = random_state
 
