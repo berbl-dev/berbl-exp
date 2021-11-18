@@ -158,6 +158,7 @@ class Experiment(abc.ABC):
         mlflow.set_experiment(self.experiment_name)
         with mlflow.start_run(run_name=self.run_name) as run:
             print(f"Started experiment: {self.experiment_name}")
+            print(f"Run ID: {run.info.run_id}")
             print(f"Run name: {self.run_name}")
             print(f"Seed: {self.seed}")
             print(f"Data seed: {self.data_seed}")
