@@ -306,7 +306,7 @@ def make_param_string(params):
               default=1000,
               help="Slurm's --mem in megabytes.",
               show_default=True)
-@click.option("--tracking-uri", type=str, default="mlruns")
+@click.option("--tracking-uri", type=str, default="mlruns-ps")
 def paramsearch(node, time, mem, tracking_uri):
     for module in xcsf_experiments:
         sleep(5)
