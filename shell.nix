@@ -141,6 +141,7 @@ let
       scipy
       scikitlearn
       seaborn
+      tabulate # for pandas markdown support
       xcsf
     ]));
 in pkgs.mkShell rec {

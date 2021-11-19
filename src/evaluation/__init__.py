@@ -7,12 +7,6 @@ import mlflow.tracking
 import numpy as np
 import pandas as pd
 
-node = "oc-compute03"
-
-cl = mlflow.tracking.MlflowClient(
-    tracking_uri=f"mlruns-remote-{node}/localized/mlruns",
-    registry_uri=f"mlruns-remote-{node}/localized/mlruns")
-
 
 def to_date(number):
     """
@@ -37,14 +31,14 @@ def duration(run):
         return to_date(run.info.end_time) - to_date(run.info.start_time)
 
 
-def exp_id(exp_name):
+def exp_id(cl, exp_name):
     return [
         exp.experiment_id for exp in cl.list_experiments()
         if exp.name == exp_name
     ][0]
 
 
-def runs(exp_name):
+def runs(cl, exp_name):
     expid = exp_id(exp_name)
     return cl.search_runs(expid)
 
@@ -62,11 +56,11 @@ def recent_runs(exp_name, n=1):
     return list(sorted(rs, key=time, reverse=True))[:n]
 
 
-def git_runs(exp_name, commit, unfinished=False):
+def git_runs(cl, exp_name, commit, unfinished=False):
     """
     Runs at the given commit.
     """
-    expid = exp_id(exp_name)
+    expid = exp_id(cl, exp_name)
     return [
         r
         for r in cl.search_runs(expid,
@@ -117,6 +111,64 @@ def plot_prediction(run):
     for data in run_datas:
         plt.plot(X_test_, data["y_test"].to_numpy().ravel()[perm])
 
+
+def metrics_histories(cl, run):
+    metrics = run.data.metrics.keys()
+    return pd.DataFrame({
+        metric: [
+            entry.value
+            for entry in cl.get_metric_history(run.info.run_id, metric)
+        ]
+        for metric in metrics
+    })
+
+
+def top_mean(n, metric):
+    return list(
+        sorted(runs,
+               key=lambda r: metrics_histories(r)[metric].mean(),
+               reverse=True))[:n]
+
+
+def flatten(l):
+    return [val for sublist in l for val in sublist]
+
+
+# Let's build DataFrames for easier manipulation.
+def df_row(run):
+    metrics = pd.Series(run.data.metrics)
+    params = pd.Series(run.data.params)
+    metadata = pd.Series({
+        "git": run.data.tags["mlflow.source.git.commit"],
+        "id": run.info.run_id,
+        "name": run.data.tags["mlflow.runName"]
+    })
+    return pd.concat([metrics, params, metadata])
+
+
+def df(runs):
+    return pd.concat([df_row(run) for run in runs], axis=1).T
+
+
+def apply(f, dct):
+    return {key: f(dct[key]) for key in dct}
+
+
+# run = berbl_experiments[exp][0]
+# for standardize in
+#     rs = [
+#         r for r in berbl_experiments[exp]
+#         if r.data.params["standardize"] == standardize
+#     ]
+
+# Performance analysis: Compare standardization with Drugowitsch's results (p(M | D)).
+
+# Performance analysis: MAE of the mean.
+
+# Comparison to XCSF: MAE.
+
+# Plot distribution exemplarily for a certain y, compare to XCSF where only the
+# matching classifiers' bookkeeping parameters are available.
 
 # runs = git_runs("xcsf.generated_function",
 #                 "ca721318e4e25ccd95f3d62af69dbf2ff022cc3c")

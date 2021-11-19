@@ -5,29 +5,12 @@ import pickle
 import baycomp
 import matplotlib.pyplot as plt
 import pandas as pd  # type: ignore
-from experiments.xcsf.parameter_search.generated_function import param_dict
+from experiments.xcsf.parameter_search import param_dict
 
 from . import *
 
 # These are the only parameters that we change in the parameter search.
 changed_params = [f"xcs.{k}" for k in param_dict if len(param_dict[k]) > 1]
-
-
-def metrics(run):
-    metrics = run.data.metrics.keys()
-    return pd.DataFrame({
-        metric: [
-            entry.value
-            for entry in cl.get_metric_history(run.info.run_id, metric)
-        ]
-        for metric in metrics
-    })
-
-
-def top_mean(n, metric):
-    return list(
-        sorted(runs, key=lambda r: metrics(r)[metric].mean(),
-               reverse=True))[:n]
 
 
 def diff_params(run1, run2):
@@ -114,44 +97,49 @@ def checklen(x):
 for metric_name in metric_names:
     runsdf[metric_name].apply(checklen)
 
-probabilities = []
-# For every combination of parameters
-for pi, pj in combinations(groups.groups.keys(), 2):
-    # parametrization
-    # pi = list(groups.groups.keys())[0]
-    # pj = list(groups.groups.keys())[1]
-    # pj = ("50", "0.001", "0.001")
-    # all data for the parametrization
-    datai = groups.get_group(pi)
-    dataj = groups.get_group(pj)
-    # data sets
-    di = datai.groupby("data.seed")
-    dj = dataj.groupby("data.seed")
+if False:
+    probabilities = []
+    # For every combination of parameters
+    for pi, pj in combinations(groups.groups.keys(), 2):
+        # parametrization
+        # pi = list(groups.groups.keys())[0]
+        # pj = list(groups.groups.keys())[1]
+        # pj = ("50", "0.001", "0.001")
+        # all data for the parametrization
+        datai = groups.get_group(pi)
+        dataj = groups.get_group(pj)
+        # data sets
+        di = datai.groupby("data.seed")
+        dj = dataj.groupby("data.seed")
 
-    # we look at mean absolute error
-    metric = "test_neg_mean_absolute_error"
+        # we look at mean absolute error
+        metric = "test_neg_mean_absolute_error"
 
-    scoresi = datai.groupby("data.seed")[metric].aggregate(
-        lambda x: np.concatenate(list(x)))
-    scoresj = dataj.groupby("data.seed")[metric].aggregate(
-        lambda x: np.concatenate(list(x)))
-    scoresi = np.stack(scoresi.to_numpy())
-    scoresj = np.stack(scoresj.to_numpy())
-    probs, fig = baycomp.two_on_multiple(
-        # probs = baycomp.two_on_multiple(
-        scoresi,
-        scoresj,
-        # We have 5 runs of k-fold cv.
-        runs=5,
-        rope=0.01,
-        plot=True,
-        names=[str(pi), str(pj)])
+        scoresi = datai.groupby("data.seed")[metric].aggregate(
+            lambda x: np.concatenate(list(x)))
+        scoresj = dataj.groupby("data.seed")[metric].aggregate(
+            lambda x: np.concatenate(list(x)))
+        scoresi = np.stack(scoresi.to_numpy())
+        scoresj = np.stack(scoresj.to_numpy())
+        probs, fig = baycomp.two_on_multiple(
+            scoresi,
+            scoresj,
+            # We have 5 runs of k-fold cv.
+            runs=5,
+            rope=0.01,
+            plot=True,
+            names=[str(pi), str(pj)], nsamples=5000)
 
-    print(pi, pj, "=>", probs)
-    probabilities.append((pi, pj, probs))
-    print(probabilities)
-    fig.savefig(
-        f"{dir}/{pi[0]}-{pi[1]}-{pi[2]}-vs-{pj[0]}-{pj[1]}-{pj[2]}.pdf")
-    # plt.show()
+        print(pi, pj, "=>", probs)
+        probabilities.append((pi, pj, probs))
+        print(probabilities)
+        # fig.savefig(
+        #     f"{dir}/{pi[0]}-{pi[1]}-{pi[2]}-vs-{pj[0]}-{pj[1]}-{pj[2]}.pdf")
+        plt.show()
 
-pd.DataFrame(probabilities).to_pickle(f"{dir}/probabilitiesdf.pickle")
+    pd.DataFrame(probabilities).to_pickle(f"{dir}/probabilitiesdf.pickle")
+
+
+# TODO Check means (want to take the highest mean for each problem)
+# TODO Check diffs between means and variances (if variance too high, then mean
+# is useless)
