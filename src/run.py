@@ -6,6 +6,7 @@ import tempfile
 from subprocess import PIPE, Popen
 
 import click
+from experiments import experiment_name
 from experiments.berbl import BERBLExperiment
 from experiments.xcsf import XCSFExperiment
 from experiments.xcsf.parameter_search import param_grid
@@ -308,6 +309,12 @@ def make_param_string(params):
               show_default=True)
 @click.option("--tracking-uri", type=str, default="mlruns-ps")
 def paramsearch(node, time, mem, tracking_uri):
+    # Create experiments so we don't get races.
+    mlflow.set_tracking_uri(tracking_uri)
+    for module in xcsf_experiments:
+        mlflow.set_experiment(experiment_name("xcsf", module))
+        sleep(0.5)
+
     for module in xcsf_experiments:
         sleep(5)
         for params in param_grid:
