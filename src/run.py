@@ -1,11 +1,12 @@
 import os
 import pathlib
-from time import sleep
 import shutil
 import tempfile
 from subprocess import PIPE, Popen
+from time import sleep
 
 import click
+import mlflow
 from experiments import experiment_name
 from experiments.berbl import BERBLExperiment
 from experiments.xcsf import XCSFExperiment
