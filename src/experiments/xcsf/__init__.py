@@ -178,6 +178,9 @@ class XCSF(BaseEstimator, RegressorMixin):
 
     def fit(self, X, y):
         X, y = check_X_y(X, y)
+        # This is required so that XCS does not (silently!?) segfault (see
+        # https://github.com/rpreen/xcsf/issues/17 ).
+        y = y.reshape((len(X), -1))
 
         random_state = check_random_state(self.random_state)
 
@@ -201,8 +204,9 @@ class XCSF(BaseEstimator, RegressorMixin):
             "eta":
             0,  # disable gradient descent of centers towards matched input mean
         }
-        xcs.condition("ub_hyperrectangle", args)
-        mlflow.log_param("xcs.condition", "ub_hyperrectangle")
+        condition_string = "ub_hyperrectangle"
+        xcs.condition(condition_string, args)
+        mlflow.log_param("xcs.condition", condition_string)
         mlflow.log_param("xcs.condition.args.min", args["min"])
         mlflow.log_param("xcs.condition.args.max", args["max"])
         mlflow.log_param("xcs.condition.args.spread-min", args["spread-min"])
@@ -214,8 +218,9 @@ class XCSF(BaseEstimator, RegressorMixin):
             1000,  # initial diagonal values of the gain-matrix
             "rls-lambda": 1,  # forget rate (small values may be unstable)
         }
-        xcs.prediction("rls-linear", args)
-        mlflow.log_param("xcs.prediction", "rls-linear")
+        prediction_string = "rls-linear"
+        xcs.prediction(prediction_string, args)
+        mlflow.log_param("xcs.prediction", prediction_string)
         mlflow.log_param("xcs.prediction.args.x0", args["x0"])
         mlflow.log_param("xcs.prediction.args.rls-scale-factor",
                          args["rls-scale-factor"])
