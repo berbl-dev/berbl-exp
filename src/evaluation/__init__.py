@@ -31,16 +31,21 @@ def duration(run):
         return to_date(run.info.end_time) - to_date(run.info.start_time)
 
 
-def exp_id(cl, exp_name):
-    return [
-        exp.experiment_id for exp in cl.list_experiments()
-        if exp.name == exp_name
-    ][0]
+def exp_id(exp_name):
+    try:
+        e_id = [
+            exp.experiment_id for exp in mlflow.list_experiments()
+            if exp.name == exp_name
+        ][0]
+    except Exception as e:
+        print(f"Experiment with name {exp_name} does not exist in store {mlflow.get_tracking_uri}.")
+        raise e
+    return e_id
 
 
-def runs(cl, exp_name):
+def runs(exp_name):
     expid = exp_id(exp_name)
-    return cl.search_runs(expid)
+    return mlflow.search_runs(expid)
 
 
 def recent_runs(exp_name, n=1):
@@ -56,16 +61,16 @@ def recent_runs(exp_name, n=1):
     return list(sorted(rs, key=time, reverse=True))[:n]
 
 
-def git_runs(cl, exp_name, commit, unfinished=False):
+def git_runs(exp_name, commit, unfinished=False):
     """
     Runs at the given commit.
     """
-    expid = exp_id(cl, exp_name)
+    expid = exp_id(exp_name)
     return [
-        r
-        for r in cl.search_runs(expid,
-                                f"tags.mlflow.source.git.commit = '{commit}'",
-                                max_results=10000)
+        r for r in mlflow.search_runs(
+            expid,
+            f"tags.mlflow.source.git.commit = '{commit}'",
+            max_results=10000)
         # , output_format="pandas" if pandas else "list") # Only in mlflow 1.20.2
         if r.info.status == "FINISHED" or unfinished
     ]
@@ -112,12 +117,13 @@ def plot_prediction(run):
         plt.plot(X_test_, data["y_test"].to_numpy().ravel()[perm])
 
 
-def metrics_histories(cl, run):
+def metrics_histories(run):
+    client = mlflow.tracking.MlflowClient(tracking_uri=mlflow.get_tracking_uri())
     metrics = run.data.metrics.keys()
     return pd.DataFrame({
         metric: [
             entry.value
-            for entry in cl.get_metric_history(run.info.run_id, metric)
+            for entry in client.get_metric_history(run.info.run_id, metric)
         ]
         for metric in metrics
     })
@@ -152,6 +158,10 @@ def df(runs):
 
 def apply(f, dct):
     return {key: f(dct[key]) for key in dct}
+
+
+def task_name(exp_name):
+    return re.sub(".*\..*\.", "", exp_name)
 
 
 # run = berbl_experiments[exp][0]
