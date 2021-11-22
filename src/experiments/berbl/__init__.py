@@ -81,7 +81,7 @@ class BERBLExperiment(Experiment):
         plot_cls(X=X, y=y_cls, ax=ax)
         add_title(ax, self.learner_.search_.size_[0],
                   self.learner_.search_.p_M_D_[0], mse, r2)
-        save_plot("pred_incl_cls", fig, self.seed)
+        save_plot("pred_incl_cls", fig)
 
         if self.show:
             plt.show()

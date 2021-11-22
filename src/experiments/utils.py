@@ -20,6 +20,7 @@ def log_array(a, label):
     mlflow.log_text(pd.DataFrame(a).to_csv(), f"{label}.csv")
 
 
+# TODO Reduce duplication with evaluation.*
 def plot_prediction(X,
                     y,
                     X_test,
@@ -53,12 +54,12 @@ def plot_prediction(X,
     return fig, ax
 
 
-def save_plot(fname, fig, seed):
+def save_plot(fname, fig):
     # store the figure (e.g. so we can run headless)
     fig_folder = "plots"
     if not os.path.exists(fig_folder):
         os.makedirs(fig_folder)
-    fig_file = f"{fig_folder}/{fname}.pdf"
+    fig_file = f"{fig_folder}/{fname}-{mlflow.active_run().info.run_id}.pdf"
     print(f"Storing plot in {fig_file}")
     fig.savefig(fig_file)
     mlflow.log_artifact(fig_file)

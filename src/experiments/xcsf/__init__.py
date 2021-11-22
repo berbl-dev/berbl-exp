@@ -49,7 +49,7 @@ class XCSFExperiment(Experiment):
                                   y_test=y_test,
                                   X_denoised=X_denoised,
                                   y_denoised=y_denoised)
-        save_plot(fig, self.seed)
+        save_plot("pred", fig)
 
         if self.show:
             plt.show()
