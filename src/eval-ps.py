@@ -33,7 +33,11 @@ def stat_test(runs1, runs2, rope):
 
 @click.command()
 @click.argument("PATH")
-def main(path):
+@click.option("--show-graphs",
+              default=False,
+              help="Whether to show graphs for the better MAE lattices",
+              show_default=True)
+def main(path, show_graphs):
     """
     Analyse the parameter search results found at PATH.
     """
@@ -47,7 +51,9 @@ def main(path):
     ]
 
     for exp_name in experiment_names:
-        print(f"Analysing results of experiment {exp_name} …")
+        print()
+        print(f"# Analysis of the results of experiment {exp_name}")
+        print()
         commit = shas[0]
         expid = exp_id(exp_name)
         print("Loading runs from mlflow, may take a few seconds …")
@@ -91,17 +97,17 @@ def main(path):
         print(f"Performing Bayesian hypothesis testing with rope={rope} …")
 
         print(f"Checking/creating cache directory …")
-        pickle_dir = f"eval/param-search/{exp_name}/"
-        os.makedirs(pickle_dir, exist_ok=True)
-        probabilities_pickle = f"{pickle_dir}/probabilities.pickle"
+        cache_dir = f"eval/param-search/{exp_name}"
+        os.makedirs(cache_dir, exist_ok=True)
+        probabilities_csv = f"{cache_dir}/probabilities.csv"
 
         try:
-            probabilities = pd.read_pickle(probabilities_pickle)
-            print(f"Existing {probabilities_pickle} found …")
+            probabilities = pd.read_csv(probabilities_csv, index_col=np.arange(0, 6))
+            print(f"Existing {probabilities_csv} found …")
             assert len(probabilities) == n_combs
         except FileNotFoundError:
             print(
-                f"No existing {probabilities_pickle} found, computing pairwise "
+                f"No existing {probabilities_csv} found, computing pairwise "
                 f"statistical tests from scratch, may take some time …")
             # While I would prefer the more declarative form, we use a loop so that
             # the user doesn't have to stare at a blank screen for several minutes.
@@ -142,7 +148,7 @@ def main(path):
             ]
             probabilities.index = probabilities.index.rename(index_names)
 
-            probabilities.to_pickle(probabilities_pickle)
+            probabilities.to_csv(probabilities_csv)
 
         # Note that we compare differences of errors. This implies that p(right) is
         # the probability that the second option's error is higher than the one of
@@ -183,9 +189,10 @@ def main(path):
                 # “better than” edge
                 G.add_edge(cand1, cand2)
 
-        layout = nx.drawing.nx_agraph.graphviz_layout(G, prog="dot")
-        nx.draw_networkx(G, pos=layout)
-        plt.show()
+        if show_graphs:
+            layout = nx.drawing.nx_agraph.graphviz_layout(G, prog="dot")
+            nx.draw_networkx(G, pos=layout)
+            plt.show()
 
         len_worse_than = pd.Series({k: len(worse_than[k]) for k in worse_than})
         len_better_than = pd.Series(
@@ -211,6 +218,7 @@ def main(path):
         print(
             f"Maximally dominating parametrizations are: {max_dom_candidates}."
         )
+        print()
 
         rope_decision_point = 0.99
         print("Checking maximally dominating parametrizations pairwise for "
@@ -225,12 +233,20 @@ def main(path):
                 except KeyError:
                     comparison = probabilities.loc[tuple(
                         flatten((cand2, cand1)))]
+                    # In this case swap the candidates for correct ordering of
+                    # the probabilities.
+                    tmp = cand1
+                    cand1 = cand2
+                    cand2 = tmp
+                print(cand1, cand2)
+                print(comparison)
                 if comparison["rope"] < 0.99:
-                    print("Comparison not rope between:", cand1, cand2,
-                          comparison)
+                    print(f"Comparison not rope between: {cand1} vs. {cand2}")
+                    print(f"Probabilities: {tuple(comparison.values)}")
+                    print()
         print(
-            ">>> You may choose either of the following practically equivalent "
-            "maximally dominating parametrizations for {exp_name} <<<")
+            ">>> Choose one of the following practically equivalent "
+            f"maximally dominating parametrizations for {exp_name} <<<")
         print(max_dom_candidates)
 
 
