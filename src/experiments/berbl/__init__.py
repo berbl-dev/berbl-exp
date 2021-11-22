@@ -86,21 +86,22 @@ class BERBLExperiment(Experiment):
         if self.show:
             plt.show()
 
-        X_points = np.array([-1, -0.5, -0.25, 0, 0.25, 0.5, 1])[:, np.newaxis]
-        log_array(X_points, "X_points")
+        if not self.learner_.toolbox.literal:
+            X_points = np.array([-1, -0.5, -0.25, 0, 0.25, 0.5, 1])[:, np.newaxis]
+            log_array(X_points, "X_points")
 
-        y_points_mean, y_points_var = self.estimator.predict_mean_var(X_points)
-        y_points_std = np.sqrt(y_points_var)
-        log_array(y_points_mean, "y_points_mean")
-        log_array(y_points_std, "y_points_std")
+            y_points_mean, y_points_var = self.estimator.predict_mean_var(X_points)
+            y_points_std = np.sqrt(y_points_var)
+            log_array(y_points_mean, "y_points_mean")
+            log_array(y_points_std, "y_points_std")
 
-        pdf = self.estimator.predict_distribution(X_points)
+            pdf = self.estimator.predict_distribution(X_points)
 
-        for i in range(len(X_points)):
-            y_points = np.arange(y_points_mean[i] - 2 * y_points_std[i], y_points_mean[i] + 2 * y_points_std[i], 0.01)
-            prob_y_points = pdf(y_points)[:, i]
-            log_array(y_points, f"y_points_{i}")
-            log_array(prob_y_points, f"prob_y_points_{i}")
+            for i in range(len(X_points)):
+                y_points = np.arange(y_points_mean[i] - 2 * y_points_std[i], y_points_mean[i] + 2 * y_points_std[i], 0.01)
+                prob_y_points = pdf(y_points)[:, i]
+                log_array(y_points, f"y_points_{i}")
+                log_array(prob_y_points, f"prob_y_points_{i}")
 
 
 
