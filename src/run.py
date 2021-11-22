@@ -79,13 +79,10 @@ def single(algorithm, module, n_iter, seed, data_seed, show, standardize,
     else:
         print(f"Algorithm {algorithm} not one of [berbl, xcsf].")
 
-
-n_reps = 5
-n_data_sets = 5
-seeds = range(0, n_reps)
-data_seeds = range(n_reps, n_reps + n_data_sets)
 seed0 = 0
 data_seed0 = 0
+
+
 # Name of task and whether soft interval matching is used.
 berbl_experiments = [
     "book.generated_function",
@@ -109,42 +106,44 @@ xcsf_experiments = [
 ]
 
 
-@click.command()
-@click.option("--tracking-uri", type=str, default="mlruns")
-def all(tracking_uri):
-    """
-    Runs all the experiments in sequence.
-    """
-    for data_seed in data_seeds:
-        for seed in seeds:
-            for module in berbl_experiments:
-                exp = BERBLExperiment(module,
-                                      seed,
-                                      data_seed,
-                                      standardize=False,
-                                      show=False,
-                                      tracking_uri=tracking_uri)
-                exp.run()
-                exp = BERBLExperiment(module,
-                                      seed,
-                                      data_seed,
-                                      standardize=True,
-                                      show=False,
-                                      tracking_uri=tracking_uri)
-                exp.run()
+# n_reps = 5
+# n_data_sets = 5
+# seeds = range(0, n_reps)
+# data_seeds = range(n_reps, n_reps + n_data_sets)
+# @click.command()
+# @click.option("--tracking-uri", type=str, default="mlruns")
+# def all(tracking_uri):
+#     """
+#     Runs all the experiments in sequence.
+#     """
+#     for data_seed in data_seeds:
+#         for seed in seeds:
+#             for module in berbl_experiments:
+#                 exp = BERBLExperiment(module,
+#                                       seed,
+#                                       data_seed,
+#                                       standardize=False,
+#                                       show=False,
+#                                       tracking_uri=tracking_uri)
+#                 exp.run()
+#                 exp = BERBLExperiment(module,
+#                                       seed,
+#                                       data_seed,
+#                                       standardize=True,
+#                                       show=False,
+#                                       tracking_uri=tracking_uri)
+#                 exp.run()
 
-    for data_seed in data_seeds:
-        for seed in seeds:
-            for module in xcsf_experiments:
-                exp = XCSFExperiment(module,
-                                     seed,
-                                     data_seed,
-                                     standardize=True,
-                                     show=False,
-                                     tracking_uri=tracking_uri)
-                exp.run()
-
-    # TODO Store run IDs somewhere and then use them in eval
+#     for data_seed in data_seeds:
+#         for seed in seeds:
+#             for module in xcsf_experiments:
+#                 exp = XCSFExperiment(module,
+#                                      seed,
+#                                      data_seed,
+#                                      standardize=True,
+#                                      show=False,
+#                                      tracking_uri=tracking_uri)
+#                 exp.run()
 
 
 def submit(node,
@@ -154,7 +153,9 @@ def submit(node,
            module,
            standardize,
            tracking_uri,
-           params=""):
+           params="",
+           n_reps=5,
+           n_data_sets=5):
     """
     Submit one ``single(…)`` job to the cluster for each repetition.
     """
@@ -237,14 +238,16 @@ def slurm(node, time, mem, tracking_uri):
                "berbl",
                module,
                standardize=False,
-               tracking_uri=tracking_uri)
+               tracking_uri=tracking_uri,
+               n_reps=10)
         submit(node,
                time,
                mem,
                "berbl",
                module,
                standardize=True,
-               tracking_uri=tracking_uri)
+               tracking_uri=tracking_uri,
+               n_reps=10)
     for module in xcsf_experiments:
         submit(node,
                time,
@@ -252,7 +255,8 @@ def slurm(node, time, mem, tracking_uri):
                "xcsf",
                module,
                standardize=True,
-               tracking_uri=tracking_uri)
+               tracking_uri=tracking_uri,
+               n_reps=10)
 
 
 @click.command()
@@ -326,12 +330,13 @@ def paramsearch(node, time, mem, tracking_uri):
                    module,
                    standardize=True,
                    tracking_uri=tracking_uri,
-                   params=make_param_string(params))
+                   params=make_param_string(params),
+                   n_reps=5)
 
 
 main.add_command(paramsearch)
 main.add_command(single)
-main.add_command(all)
+# main.add_command(all)
 main.add_command(slurm)
 main.add_command(slurm1)
 
