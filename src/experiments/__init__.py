@@ -47,7 +47,7 @@ class IdentityTargetRegressor(compose.TransformedTargetRegressor):
         return self.regressor_.predicts(X, **predicts_params)
 
     def predict_distribution(self, X, **predict_distribution_params):
-        return self.regressor_.predict_distribution(X, **predicts_params)
+        return self.regressor_.predict_distribution(X, **predict_distribution_params)
 
 
 class StandardScaledTargetRegressor(compose.TransformedTargetRegressor):
