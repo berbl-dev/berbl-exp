@@ -33,11 +33,11 @@ def stat_test(runs1, runs2, rope):
 
 @click.command()
 @click.argument("PATH")
-@click.option("--show-graphs",
+@click.option("--graphs/--no-graphs",
               default=False,
               help="Whether to show graphs for the better MAE lattices",
               show_default=True)
-def main(path, show_graphs):
+def main(path, graphs):
     """
     Analyse the parameter search results found at PATH.
     """
@@ -47,7 +47,7 @@ def main(path, show_graphs):
 
     # Only consider runs that ran from these commits.
     shas = [
-        "f0378dce3227b59286529d828d098eb2e8956210",
+        "29963ee41bfd5d55e855788f801f4e28205ac558"
     ]
 
     for exp_name in experiment_names:
@@ -68,7 +68,10 @@ def main(path, show_graphs):
         # performed 5 runs for each of 5 data sets).
         assert len(rs) == n_runs, (
             f"There should be {n_runs} runs for {exp_name} "
-            f"but there are {len(rs)}.")
+            f"but there are {len(rs)}. "
+            "(Common problem: Did you specify the correct commit in "
+            "eval-ps.py?)"
+        )
         # Check whether all runs being considered are finished.
         assert (rs.status != "FINISHED"
                 ).sum() == 0, f"Some runs for {exp_name} are not FINISHED yet."
@@ -189,7 +192,7 @@ def main(path, show_graphs):
                 # “better than” edge
                 G.add_edge(cand1, cand2)
 
-        if show_graphs:
+        if graphs:
             layout = nx.drawing.nx_agraph.graphviz_layout(G, prog="dot")
             nx.draw_networkx(G, pos=layout)
             plt.show()
