@@ -102,13 +102,13 @@ def main(path, show_graphs):
         probabilities_csv = f"{cache_dir}/probabilities.csv"
 
         try:
-            probabilities = pd.read_csv(probabilities_csv, index_col=np.arange(0, 6))
+            probabilities = pd.read_csv(probabilities_csv,
+                                        index_col=np.arange(0, 6))
             print(f"Existing {probabilities_csv} found …")
             assert len(probabilities) == n_combs
         except FileNotFoundError:
-            print(
-                f"No existing {probabilities_csv} found, computing pairwise "
-                f"statistical tests from scratch, may take some time …")
+            print(f"No existing {probabilities_csv} found, computing pairwise "
+                  f"statistical tests from scratch, may take some time …")
             # While I would prefer the more declarative form, we use a loop so that
             # the user doesn't have to stare at a blank screen for several minutes.
             # probabilities = {(key1, key2): stat_test(np.array(options[key1]),
@@ -215,9 +215,6 @@ def main(path, show_graphs):
         max_dom_candidates = max_dom_candidates[max_dom_candidates ==
                                                 max_dom_count].index.values
 
-        print(
-            f"Maximally dominating parametrizations are: {max_dom_candidates}."
-        )
         print()
 
         rope_decision_point = 0.99
@@ -238,16 +235,15 @@ def main(path, show_graphs):
                     tmp = cand1
                     cand1 = cand2
                     cand2 = tmp
-                print(cand1, cand2)
-                print(comparison)
                 if comparison["rope"] < 0.99:
                     print(f"Comparison not rope between: {cand1} vs. {cand2}")
                     print(f"Probabilities: {tuple(comparison.values)}")
                     print()
-        print(
-            ">>> Choose one of the following practically equivalent "
-            f"maximally dominating parametrizations for {exp_name} <<<")
-        print(max_dom_candidates)
+        print(">>> Choose one of the following practically equivalent "
+              f"maximally dominating parametrizations for {exp_name} <<<")
+        max_dom_candidates_df = pd.DataFrame(
+            [list(c) for c in max_dom_candidates], columns=changed_params)
+        print(max_dom_candidates_df)
 
 
 if __name__ == "__main__":
