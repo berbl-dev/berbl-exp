@@ -46,20 +46,20 @@ def plot_prediction(X,
     if var is not None:
         var_ = var.ravel()[perm]
         std = np.sqrt(var_)
-        ax.plot(X_test_, y_test_ - std, "b--", linewidth=0.5)
-        ax.plot(X_test_, y_test_ + std, "b--", linewidth=0.5)
-        ax.fill_between(X_test_, y_test_ - std, y_test_ + std, alpha=0.2)
+        ax.plot(X_test_, y_test_ - std, c="b", linestyle="dotted")
+        ax.plot(X_test_, y_test_ + std, c="b", linestyle="dotted")
+        ax.fill_between(X_test_, y_test_ - std, y_test_ + std, alpha=0.3)
 
     return fig, ax
 
 
-def save_plot(fig, seed):
+def save_plot(fname, fig, seed):
     # store the figure (e.g. so we can run headless)
-    fig_folder = "latest-final-approximations"
+    fig_folder = "plots"
     if not os.path.exists(fig_folder):
         os.makedirs(fig_folder)
-    fig_file = f"{fig_folder}/Final approximation {seed}.pdf"
-    print(f"Storing final approximation figure in {fig_file}")
+    fig_file = f"{fig_folder}/{fname}.pdf"
+    print(f"Storing plot in {fig_file}")
     fig.savefig(fig_file)
     mlflow.log_artifact(fig_file)
 
