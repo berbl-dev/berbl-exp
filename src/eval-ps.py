@@ -13,24 +13,6 @@ from experiments.xcsf.parameter_search import param_dict, param_grid
 pd.options.display.max_rows = 2000
 
 
-def strs_to_nums(tup):
-    return tuple([float(x) if float(x) < 1 else int(x) for x in tup])
-
-
-def stat_test(runs1, runs2, rope):
-    """
-    Parameters
-    ----------
-    runs1 : list of float
-        For each of the data sets, the mean of the considered metric
-        calculated on the runs of the first algorithm.
-    runs2 : list of float
-        For each of the data sets, the mean of the considered metric
-        calculated on the runs of the second algorithm.
-    """
-    return baycomp.two_on_multiple(x=runs1, y=runs2, rope=rope)
-
-
 @click.command()
 @click.argument("PATH")
 @click.option("--graphs/--no-graphs",

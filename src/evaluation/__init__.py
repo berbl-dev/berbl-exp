@@ -38,7 +38,9 @@ def exp_id(exp_name):
             if exp.name == exp_name
         ][0]
     except Exception as e:
-        print(f"Experiment with name {exp_name} does not exist in store {mlflow.get_tracking_uri}.")
+        print(
+            f"Experiment with name {exp_name} does not exist in store {mlflow.get_tracking_uri}."
+        )
         raise e
     return e_id
 
@@ -118,7 +120,8 @@ def plot_prediction(run):
 
 
 def metrics_histories(run):
-    client = mlflow.tracking.MlflowClient(tracking_uri=mlflow.get_tracking_uri())
+    client = mlflow.tracking.MlflowClient(
+        tracking_uri=mlflow.get_tracking_uri())
     metrics = run.data.metrics.keys()
     return pd.DataFrame({
         metric: [
@@ -162,6 +165,24 @@ def apply(f, dct):
 
 def task_name(exp_name):
     return re.sub(".*\..*\.", "", exp_name)
+
+
+def strs_to_nums(tup):
+    return tuple([float(x) if float(x) < 1 else int(x) for x in tup])
+
+
+def stat_test(runs1, runs2, rope):
+    """
+    Parameters
+    ----------
+    runs1 : list of float
+        For each of the data sets, the mean of the considered metric
+        calculated on the runs of the first algorithm.
+    runs2 : list of float
+        For each of the data sets, the mean of the considered metric
+        calculated on the runs of the second algorithm.
+    """
+    return baycomp.two_on_multiple(x=runs1, y=runs2, rope=rope)
 
 
 # run = berbl_experiments[exp][0]
