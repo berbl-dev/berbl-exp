@@ -4,5 +4,5 @@ task = "book.sine"
 
 # TODO Use proper parameter settings
 params = default_xcs_params() | {
-    "MAX_TRIALS" : 10000
+    "MAX_TRIALS" : 100000,
 }
