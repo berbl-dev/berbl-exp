@@ -134,10 +134,12 @@ let
       deap
       ipython
       mlflowPatched
+      networkx
       numpy
       pandas
       berbl
       pyparsing3
+      pygraphviz
       scipy
       scikitlearn
       seaborn
@@ -146,7 +148,7 @@ let
     ]));
 in pkgs.mkShell rec {
   venvDir = ".venv";
-  packages = with pkgs; [ python3Packages.venvShellHook python ];
+  packages = with pkgs; [ pkgs.graphviz python3Packages.venvShellHook python ];
   postVenvCreation = ''
     unset SOURCE_DATE_EPOCH
     pip install pystan==2.19.1.1
