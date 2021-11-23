@@ -97,6 +97,9 @@ berbl_experiments = [
     "non_literal.sparse_noisy_data",
     "non_literal.sine",
     "non_literal.variable_noise",
+    # Not in the book but required for fairer comparison with XCSF.
+    "additional_non_literal.generated_function",
+    "additional_non_literal.sparse_noisy_data",
 ]
 xcsf_experiments = [
     "book.generated_function",
