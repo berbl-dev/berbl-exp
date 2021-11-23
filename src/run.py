@@ -231,6 +231,15 @@ def slurm(node, time, mem, tracking_uri):
     """
     Submits all experiments to NODE.
     """
+    # Create experiments so we don't get races.
+    mlflow.set_tracking_uri(tracking_uri)
+    for module in berbl_experiments:
+        mlflow.set_experiment(experiment_name("berbl", module))
+        sleep(0.5)
+    for module in xcsf_experiments:
+        mlflow.set_experiment(experiment_name("xcsf", module))
+        sleep(0.5)
+
     for module in berbl_experiments:
         submit(node,
                time,

@@ -101,6 +101,7 @@ class BERBLExperiment(Experiment):
                 pdf = self.estimator.predict_distribution(X_points)
 
                 for i in range(len(X_points)):
+                    # TODO This arange sometimes gets a nan and then fails.
                     y_points = np.arange(
                         y_points_mean[i] - 2 * y_points_std[i],
                         y_points_mean[i] + 2 * y_points_std[i], 0.01)
