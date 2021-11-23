@@ -78,8 +78,14 @@ class StandardScaledTargetRegressor(compose.TransformedTargetRegressor):
         return self.transformer_.inverse_transform(ys)
 
     def predict_distribution(self, X, **predict_distribution_params):
-        ...
-        # TODO add predict_distribution from notes
+        def pdf(y):
+            # TODO Is this correct? We won't use it before we checked
+            jacobian_factor = self.transformer_.scale_
+            y_trans = self.transformer_.inverse_transform(y)
+            p = self.regressor_.predict_distribution(X, **predict_distribution_params)(y_trans) * jacobian_factor
+            return self.transformer_.inverse_transform(p)
+
+        return pdf
 
 
 class Pipeline(pipeline.Pipeline):
