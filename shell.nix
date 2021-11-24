@@ -18,55 +18,6 @@ let
               sha256 = "1z3gm521wpm3j13rwhlb4f2x0645zvxkgxij37i3imdpy39iiam2";
             };
           });
-          baycomp = python-super.buildPythonPackage rec {
-            pname = "baycomp";
-            version = "unstable-8c4a22";
-
-            src = super.fetchFromGitHub {
-              owner = "janezd";
-              repo = pname;
-              rev = "8c4a2253e875fc1eae2b00ab9da77c14940885e2";
-              sha256 =
-                "sha256:1yan1kk72yci55g2k3zala2s3711bvw8r2zlq1xh0vv1pdzk2c8k";
-            };
-
-            propagatedBuildInputs = with python-super; [ matplotlib scipy ];
-
-            meta = with super.lib; {
-              homepage = "https://github.com/janezd/baycomp";
-              description = "A library for Bayesian comparison of classifiers";
-              license = licenses.mit;
-              maintainers = with maintainers; [ dpaetzel ];
-            };
-          };
-          pyparsing3 = python-super.buildPythonPackage rec {
-            # Copied from nixpkgs and slightly adjusted for 3.0.0rc2.
-            pname = "pyparsing";
-            version = "3.0.0rc2";
-
-            src = super.fetchFromGitHub {
-              owner = "pyparsing";
-              repo = pname;
-              rev = "pyparsing_${version}";
-              sha256 =
-                "sha256:0j2y4075s9596826cjw5k3z7c7fdnn53nkdahn466h9l0zgbyfx1";
-            };
-
-            # https://github.com/pyparsing/pyparsing/blob/847af590154743bae61a32c3dc1a6c2a19009f42/tox.ini#L6
-            checkInputs = [ python-super.coverage ];
-            checkPhase = ''
-              # coverage run --branch simple_unit_tests.py
-              # coverage run --branch unitTests.py
-            '';
-
-            meta = with super.lib; {
-              homepage = "https://github.com/pyparsing/pyparsing";
-              description =
-                "An alternative approach to creating and executing simple grammars, vs. the traditional lex/yacc approach, or the use of regular expressions";
-              license = licenses.mit;
-              maintainers = with maintainers; [ kamadorueda ];
-            };
-          };
           sqlalchemy = python-super.sqlalchemy.overrideAttrs (attrs: rec {
             pname = "SQLAlchemy";
             version = "1.3.13";
@@ -107,6 +58,12 @@ let
             meta.broken = false;
           });
           # berbl = with pkgs; with python-super; pkgs.callPackage ./berbl/default.nix {
+          baycomp = with pkgs;
+            with python-super;
+            import ./deps/baycomp/default.nix {
+              inherit lib matplotlib scipy;
+              buildPythonPackage = buildPythonPackage;
+            };
           berbl = with pkgs;
             with python-super;
             import ./berbl/default.nix {
@@ -117,7 +74,7 @@ let
               buildPythonPackage = buildPythonPackage;
             };
           xcsf = with super.pkgs;
-            callPackage ./xcsf/default.nix {
+            callPackage ./deps/xcsf/default.nix {
               inherit lib stdenv fetchgit cmake;
               toPythonModule = python3Packages.toPythonModule;
               python = python3;
@@ -138,7 +95,6 @@ let
       numpy
       pandas
       berbl
-      pyparsing3
       pygraphviz
       scipy
       scikitlearn
