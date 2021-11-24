@@ -2,6 +2,7 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 
+import baycomp
 import matplotlib.pyplot as plt
 import mlflow.tracking
 import numpy as np
@@ -78,12 +79,11 @@ def git_runs(exp_name, commit, unfinished=False):
     ]
 
 
-def get_data(run):
-    folder = run.info.artifact_uri.replace("file://", "")
-    files = os.listdir(folder)
+def get_data(artifact_uri):
+    files = os.listdir(artifact_uri)
     contents = {re.sub(".csv", "", f): f for f in files if f.endswith(".csv")}
     data = {
-        key: pd.read_csv(f"{folder}/{contents[key]}", index_col=0)
+        key: pd.read_csv(f"{artifact_uri}/{contents[key]}", index_col=0)
         for key in contents
     }
     return data
@@ -97,27 +97,47 @@ def check_input_data(run_datas):
             assert all(data[key] == run_datas[0][key])
 
 
-def plot_training_data(run):
+def plot_training_data(ax, artifact_uri):
     """
     Plot training data (and denoised data for visual reference).
     """
-    data = get_data(run)
-    plt.plot(data["X"], data["y"], "+")
-    plt.plot(data["X_denoised"], data["y_denoised"], "k--")
+    data = get_data(artifact_uri)
+    ax.plot(data["X"], data["y"], "k+")
+    ax.plot(data["X_denoised"], data["y_denoised"], "k--")
 
 
-def plot_prediction(run):
-    data = get_data(run)
+def plot_prediction(ax, artifact_uri):
+    data = get_data(artifact_uri)
 
     # sort and get permutation of prediction data points
-    X_test_ = data["X_test"].to_numpy().ravel()
-    perm = np.argsort(X_test_)
-    X_test_ = X_test_[perm]
+    X_test = data["X_test"].to_numpy().ravel()
+    perm = np.argsort(X_test)
+    X_test = X_test[perm]
+    y_test = data["y_test"].to_numpy().ravel()[perm]
 
-    # plot predictions
-    for data in run_datas:
-        plt.plot(X_test_, data["y_test"].to_numpy().ravel()[perm])
+    # plot prediction means
+    ax.plot(X_test, y_test, "C0")
 
+    # plot prediction stds, if var exists in data
+    try:
+        var = data["var"].to_numpy().ravel()[perm]
+        std = np.sqrt(var)
+        ax.fill_between(X_test,
+                        y_test - std,
+                        y_test + std,
+                        color="C0",
+                        alpha=0.3)
+        ax.plot(X_test, y_test - std, c="C0", linestyle="dotted")
+        ax.plot(X_test, y_test + std, c="C0", linestyle="dotted")
+    except KeyError:
+        pass
+
+def save_plot(exp_name, plot_name, fig):
+    fig_folder = f"eval/plots/{exp_name}"
+    os.makedirs(fig_folder, exist_ok=True)
+    fig_file = f"{fig_folder}/{plot_name}.pdf"
+    print(f"Storing plot in {fig_file}")
+    fig.savefig(fig_file)
 
 def metrics_histories(run):
     client = mlflow.tracking.MlflowClient(
@@ -171,7 +191,7 @@ def strs_to_nums(tup):
     return tuple([float(x) if float(x) < 1 else int(x) for x in tup])
 
 
-def stat_test(runs1, runs2, rope):
+def stat_test(runs1, runs2, rope, **kwargs):
     """
     Parameters
     ----------
@@ -182,7 +202,7 @@ def stat_test(runs1, runs2, rope):
         For each of the data sets, the mean of the considered metric
         calculated on the runs of the second algorithm.
     """
-    return baycomp.two_on_multiple(x=runs1, y=runs2, rope=rope)
+    return baycomp.two_on_multiple(x=runs1, y=runs2, rope=rope, **kwargs)
 
 
 # run = berbl_experiments[exp][0]
