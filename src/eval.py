@@ -77,6 +77,11 @@ def main(path, graphs, commit):
             berbl_experiments[exp_name]["params.standardize"] == "False"]
         for exp_name in berbl_experiments
     }
+    berbl_experiments_standardized = {
+        exp_name: berbl_experiments[exp_name][
+            berbl_experiments[exp_name]["params.standardize"] == "True"]
+        for exp_name in berbl_experiments
+    }
     # Introduce a shorthand for the REPL.
     rpe = berbl_experiments_unstandardized
 
@@ -149,8 +154,8 @@ def main(path, graphs, commit):
         })
         d = pd.concat([d, drugowitsch_ga[tname]], axis=1)
         d = d.rename(columns={tname: "GA"})
-        d = pd.concat([d, drugowitsch_mcmc[tname]], axis=1)
-        d = d.rename(columns={tname: "MCMC"})
+        # d = pd.concat([d, drugowitsch_mcmc[tname]], axis=1)
+        # d = d.rename(columns={tname: "MCMC"})
         d = d.round(2)
 
         df = df.append(d)
@@ -198,8 +203,17 @@ def main(path, graphs, commit):
         if graphs:
             plt.show()
 
-    # For each task, get the mean p_M_D for literal and non_literal
-    for metric in ["metrics.elitist.p_M_D", "metrics.elitist.mae"]:
+    plt.close("all")
+
+    print()
+    print("## Performing statistical tests for literal vs. modular")
+    print()
+
+    # For each task perform a statistical test for three metrics
+    for metric in [
+            "metrics.elitist.p_M_D", "metrics.elitist.mae",
+            "metrics.elitist.size"
+    ]:
         mshort = metric.removeprefix("metrics.elitist.")
         means_literal = np.array([
             berbl_experiments_unstandardized[f"berbl.book.{tname}"]
@@ -209,55 +223,55 @@ def main(path, graphs, commit):
             berbl_experiments_unstandardized[f"berbl.non_literal.{tname}"]
             [metric].mean() for tname in task_names
         ])
+        if mshort == "mae":
+            rope = 0.01
+        elif mshort == "p_M_D":
+            # Seems plausible on these problems
+            rope = 10
+        elif mshort == "size":
+            # Seems plausible on these problems
+            rope = 0.5
         probs, fig = stat_test(means_literal,
                                means_non_literal,
-                               rope=0.01,
+                               rope=rope,
                                plot=True)
         save_plot("stat", f"literal-vs-modular-{mshort}", fig)
+        print(f"Literal vs. modular regarding {metric} (rope={rope}): {probs}")
 
-        # TODO Not yet sure how meaningful this is
-        if False:
-            runs_literal = np.array([
-                berbl_experiments_unstandardized[f"berbl.book.{tname}"][metric]
-                for tname in task_names
-            ])
-            runs_non_literal = np.array([
-                berbl_experiments_unstandardized[f"berbl.non_literal.{tname}"]
-                [metric] for tname in task_names
-            ])
-            import baycomp
-            probs, fig = baycomp.two_on_multiple(x=runs_literal,
-                                                 y=runs_non_literal,
-                                                 rope=0.01,
-                                                 plot=True)
-            save_plot("stat", f"literal-vs-modular-hierarchical-{mshort}", fig)
+        if graphs:
+            plt.show()
 
-        # TODO Not yet sure how meaningful this is
-        if False:
-            runs_literal = np.array(
-                flatten([
-                    berbl_experiments_unstandardized[f"berbl.book.{tname}"].
-                    groupby("params.data.seed").agg(list)[metric]
-                    for tname in task_names
-                ]))
-            runs_non_literal = np.array(
-                flatten([
-                    berbl_experiments_unstandardized[
-                        f"berbl.non_literal.{tname}"].groupby(
-                            "params.data.seed").agg(list)[metric]
-                    for tname in task_names
-                ]))
-            import baycomp
-            probs, fig = baycomp.two_on_multiple(x=runs_literal,
-                                                 y=runs_non_literal,
-                                                 rope=0.01,
-                                                 plot=True)
-            save_plot("stat",
-                      f"literal-vs-modular-hierarchical-flattened-{mshort}",
-                      fig)
+    # For each task perform a statistical test for three metrics but on standardized data
+    for metric in [
+            "metrics.elitist.p_M_D", "metrics.elitist.mae",
+            "metrics.elitist.size"
+    ]:
+        mshort = metric.removeprefix("metrics.elitist.")
+        means_literal = np.array([
+            berbl_experiments_standardized[f"berbl.book.{tname}"]
+            [metric].mean() for tname in task_names
+        ])
+        means_non_literal = np.array([
+            berbl_experiments_standardized[f"berbl.non_literal.{tname}"]
+            [metric].mean() for tname in task_names
+        ])
+        if mshort == "mae":
+            rope = 0.01
+        elif mshort == "p_M_D":
+            # Seems plausible on these problems
+            rope = 10
+        elif mshort == "size":
+            # Seems plausible on these problems
+            rope = 0.5
+        probs, fig = stat_test(means_literal,
+                               means_non_literal,
+                               rope=rope,
+                               plot=True)
+        save_plot("stat", f"literal-vs-modular-stand-{mshort}", fig)
+        print(f"Standardized literal vs. modular regarding {metric} (rope={rope}): {probs}")
 
-            if graphs:
-                plt.show()
+        if graphs:
+            plt.show()
 
     print()
     print("# Comparison with XCSF (MAE)")
@@ -376,7 +390,35 @@ def main(path, graphs, commit):
     print(f"Stat. test result for XCSF vs. modular: {probs}")
     save_plot("stat", f"xcsf-vs-modular-{mshort}", fig)
 
-    # Now plot XCSF graphs (take the median as well).
+    print()
+    print("## Plotting XCSF prediction BERBL median run")
+    print()
+
+    exp_name = "xcsf.book.generated_function"
+    data_seed = prediction_plots["berbl.non_literal.generated_function"][
+        "params.data.seed"]
+    rs = xcsf_experiments[exp_name][xcsf_experiments[exp_name]
+                                    ["params.data.seed"] == data_seed]
+    metric = "metrics.mae"
+    r = rs[rs[metric] == rs[metric].quantile(interpolation="higher")].iloc[0]
+    rid = r["run_id"]
+    fixed_art_uri = f"{path}/{r['artifact_uri'].removeprefix('mlruns/')}"
+    rdata = get_data(fixed_art_uri)
+
+    fig, ax = plt.subplots()
+    plot_training_data(ax, fixed_art_uri)
+    plot_prediction(ax, fixed_art_uri)
+    ax.set_xlabel("Input x")
+    ax.set_ylabel("Output y")
+    save_plot(exp_name, "pred-same-data-berbl", fig)
+
+    if graphs:
+        plt.show()
+
+    print()
+    print("## Plotting XCSF predictions (median runs re MAE)")
+    print()
+
     for exp_name, rs in xcsf_experiments.items():
         print(f"Plotting median MAE run for {exp_name} …")
         metric = "metrics.mae"
