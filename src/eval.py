@@ -419,10 +419,11 @@ def main(path, graphs, commit):
     std1 = mean - std
     std2 = mean + std
 
-    ax.plot(y, pdf, "b--")
-    ax.axvline(mean, color="b")
+    ax.plot(y, pdf, "C0--")
+    ax.axvline(mean, color="C0")
     ax.fill_between(x=y.to_numpy().ravel(),
                     y1=pdf.to_numpy().ravel(),
+                    color="C0",
                     alpha=0.3,
                     where=np.logical_and(std1 < y,
                                          y < std2).to_numpy().ravel())
@@ -435,7 +436,7 @@ def main(path, graphs, commit):
               ymin=0,
               ymax=[pdf.loc[stdidx1], pdf.loc[stdidx2]],
               linestyle="dotted",
-              color="b")
+              color="C0")
 
     ax.set_xlabel("Output y")
     ax.set_ylabel("p(y | x = 0.25)")
