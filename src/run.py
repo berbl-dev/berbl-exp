@@ -221,7 +221,7 @@ def submit(node,
 @click.option("-t",
               "--time",
               type=click.IntRange(min=10),
-              default=60,
+              default=120,
               help="Slurm's --time in minutes.",
               show_default=True)
 @click.option("--mem",
@@ -278,7 +278,7 @@ def slurm(node, time, mem, tracking_uri):
 @click.option("-t",
               "--time",
               type=click.IntRange(min=10),
-              default=60,
+              default=120,
               help="Slurm's --time in minutes.",
               show_default=True)
 @click.option("--mem",
@@ -316,7 +316,7 @@ def make_param_string(params):
 @click.option("-t",
               "--time",
               type=click.IntRange(min=10),
-              default=60,
+              default=120,
               help="Slurm's --time in minutes.",
               show_default=True)
 @click.option("--mem",
