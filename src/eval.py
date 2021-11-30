@@ -93,6 +93,7 @@ def table_compare_drugowitsch(runs):
     table.index = pd.MultiIndex.from_arrays([table["task"], table["metric"]])
     del table["task"]
     del table["metric"]
+    table = table.sort_values("metric")
     table = table.reindex(
         ["generated_function", "sparse_noisy_data", "variable_noise", "sine"],
         level=0)
@@ -106,8 +107,11 @@ def table_compare_drugowitsch(runs):
 
     table = table.join(dga)
 
+    print(table)
     print()
+
     print(table.to_latex(escape=False))
+    print()
 
 
 def median_run(runs, metric, algorithm, variant, task):
@@ -235,7 +239,15 @@ def table_stat_tests_berbl_xcsf(runs):
 
     print(table)
     print()
-    print(table.to_latex())
+
+    table_rounded = table.copy()
+    for variant, statistic in table.keys():
+        if statistic == "std":
+            table_rounded[(variant, statistic)] = table_rounded[(variant, statistic)].round(2)
+        else:
+            table_rounded[(variant, statistic)] = table_rounded[(variant, statistic)].round(4)
+
+    print(table_rounded.to_latex())
     print()
 
     print()
@@ -314,7 +326,6 @@ def plot_berbl_pred_dist(runs, path, graphs):
     # TODO Ugly that we hardcode "mlruns/" here
     fixed_art_uri = f"{path}/{r['artifact_uri'].removeprefix('mlruns/')}"
     rdata = get_data(fixed_art_uri)
-    breakpoint()
     mean = rdata["y_points_mean"].loc[index][0]
     std = rdata["y_points_std"].loc[index][0]
     y = rdata[f"y_points_{index}"]
