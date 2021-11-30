@@ -1,193 +1,145 @@
-import os
-from itertools import combinations
+import warnings
 
-import baycomp
 import click
 import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
 import run as runpy
 from evaluation import *
-from experiments.xcsf.parameter_search import param_dict, param_grid
+from evaluation.plot import *
+
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 pd.options.display.max_rows = 2000
 
+# Metric and whether higher is better.
+metrics = {"p_M_D": True, "mae": False, "size": False}
+ropes = {"p_M_D": 10, "mae": 0.01, "size": 0.5}
 
-@click.command()
-@click.argument("PATH")
-@click.option("--graphs/--no-graphs",
-              default=False,
-              help="Whether to show all plots and graphs",
-              show_default=True)
-@click.option("--commit",
-              default=None,
-              help="Only consider runs that ran from this commit",
-              show_default=True)
-def main(path, graphs, commit):
-    """
-    Analyse the parameter search results found at PATH.
-    """
-    mlflow.set_tracking_uri(path)
 
-    berbl_experiment_names = [
-        f"berbl.{exp_name}" for exp_name in runpy.berbl_experiments
-    ]
-    xcsf_experiment_names = [
-        f"xcsf.{exp_name}" for exp_name in runpy.xcsf_experiments
-    ]
-
+def table_compare_drugowitsch(runs):
     print()
     print("# Comparison with Drugowitsch's results (p(M | D) and size)")
     print()
 
-    # Get all run data gathered for berbl and perform a few checks.
-    print(
-        "Loading runs from mlflow and checking data, may take a few seconds …")
-    berbl_experiments = {}
-    for exp_name in berbl_experiment_names:
-        expid = exp_id(exp_name)
-        if commit is None:
-            rs = mlflow.search_runs(expid,
-                                    max_results=10000,
-                                    output_format="pandas")
-        else:
-            rs = mlflow.search_runs(
-                expid, (f"tags.mlflow.source.git.commit = '{commit}'"),
-                max_results=10000,
-                output_format="pandas")
-
-        # Factor 2 due to all experiments having been made once with
-        # standardized data and once without.
-        n_runs = 10 * 5 * 2
-        assert len(rs) == n_runs, (
-            f"There should be {n_runs} runs for {exp_name} (standardize = "
-            f" False) but there are {len(rs)}.")
-        # Check whether all runs being considered are finished
-        assert (rs.status != "FINISHED"
-                ).sum() == 0, f"Some runs for {exp_name} are not FINISHED yet."
-
-        berbl_experiments |= {exp_name: rs}
-
-    # Performance analysis: Compare with Drugowitsch's results (p(M | D)).
-
-    # Do not concern ourselves yet with the standardized experiments but only with
-    # the 1:1 reproduction of Drugowitsch's results.
-    berbl_experiments_unstandardized = {
-        exp_name: berbl_experiments[exp_name][
-            berbl_experiments[exp_name]["params.standardize"] == "False"]
-        for exp_name in berbl_experiments
-    }
-    berbl_experiments_standardized = {
-        exp_name: berbl_experiments[exp_name][
-            berbl_experiments[exp_name]["params.standardize"] == "True"]
-        for exp_name in berbl_experiments
-    }
-    # Introduce a shorthand for the REPL.
-    rpe = berbl_experiments_unstandardized
-
     # These are Drugowitsch's results on these tasks (taken from his book).
     drugowitsch_ga = pd.DataFrame({
         "generated_function": {
-            "metrics.elitist.p_M_D": 118.81,
-            "metrics.elitist.size": 2
+            "$p(\MM \mid \DD)$": 118.81,
+            "$K$": 2
         },
         "sparse_noisy_data": {
-            "metrics.elitist.p_M_D": -159.07,
-            "metrics.elitist.size": 2
+            "$p(\MM \mid \DD)$": -159.07,
+            "$K$": 2
         },
         "variable_noise": {
-            "metrics.elitist.p_M_D": -63.12,
-            "metrics.elitist.size": 2
+            "$p(\MM \mid \DD)$": -63.12,
+            "$K$": 2
         },
         "sine": {
-            "metrics.elitist.p_M_D": -155.68,
-            "metrics.elitist.size": 7
+            "$p(\MM \mid \DD)$": -155.68,
+            "$K$": 7
         },
     })
     drugowitsch_mcmc = pd.DataFrame({
         "generated_function": {
-            "metrics.elitist.p_M_D": 174.50,
-            "metrics.elitist.size": 3
+            "$p(\MM \mid \DD)$": 174.50,
+            "$K$": 3
         },
         "sparse_noisy_data": {
-            "metrics.elitist.p_M_D": -158.55,
-            "metrics.elitist.size": 2
+            "$p(\MM \mid \DD)$": -158.55,
+            "$K$": 2
         },
         "variable_noise": {
-            "metrics.elitist.p_M_D": -58.59,
-            "metrics.elitist.size": 2
+            "$p(\MM \mid \DD)$": -58.59,
+            "$K$": 2
         },
         "sine": {
-            "metrics.elitist.p_M_D": -29.39,
-            "metrics.elitist.size": 5
+            "$p(\MM \mid \DD)$": -29.39,
+            "$K$": 5
         },
     })
 
-    metrics = [f"metrics.elitist.{m}" for m in ["size", "p_M_D"]]
-    task_names = [
-        "generated_function", "sparse_noisy_data", "variable_noise", "sine"
-    ]
+    runs = keep_unstandardized(runs)
 
+    print("Keeping only reproduction BERBL experiments …")
+    # First level of index is algorithm.
+    rs = runs.loc["berbl"]
+    # Second level of index is variant.
+    rs = rs.loc[["book", "non_literal"]]
+
+    assert len(rs) == 10 * 5 * (4 + 4)
+
+    rs = rs.rename(lambda s: s.removeprefix("metrics.elitist."), axis=1)
+
+    metrics = ["p_M_D", "size"]
+    groups = rs.groupby(level=["variant", "task"])[metrics]
+
+    means = groups.mean()
+    means = pd.DataFrame(means.stack()).rename(columns={0: "mean"})
+    medians = groups.median()
+    medians = pd.DataFrame(medians.stack()).rename(columns={0: "median"})
+    maxs = groups.max()
+    maxs = pd.DataFrame(maxs.stack()).rename(columns={0: "max"})
+
+    table = means.join([medians, maxs])
+    table = table.unstack(0)
+    table.columns = table.columns.swaplevel(0, 1)
+    table = table[table.columns[[0, 2, 4, 1, 3, 5]]]
+
+    table.index = table.index.rename(["task", "metric"])
+    table = table.reset_index()
+    table["metric"] = table["metric"].apply(
+        lambda s: "$K$" if s == "size" else "$p(\MM \mid \DD)$")
+    table.index = pd.MultiIndex.from_arrays([table["task"], table["metric"]])
+    del table["task"]
+    del table["metric"]
+    table = table.reindex(
+        ["generated_function", "sparse_noisy_data", "variable_noise", "sine"],
+        level=0)
+
+    table = table.round(2)
+
+    dga = drugowitsch_ga.stack()
+    dga.index = dga.index.swaplevel(0, 1)
+    dga = dga.rename("Drugowitsch")
+    dga.index = dga.index.rename(["task", "metric"])
+
+    table = table.join(dga)
+
+    print()
+    print(table.to_latex(escape=False))
+
+
+def median_run(runs, metric, algorithm, variant, task):
+    rs = runs.loc[(algorithm, variant, task)]
+
+    assert len(rs) == 10 * 5, len(rs)
+    r = rs[rs[metric] == rs[metric].quantile(interpolation="higher")].iloc[0]
+    return r
+
+
+def plot_median_predictions(runs, path, graphs):
     print()
     print(
-        f"## Compare metric results to Drugowitsch's results on {task_names}")
-    print()
-    df = pd.DataFrame()
-    i = 0
-    for tname in task_names:
-        i += 1
-        exp_name = f"berbl.book.{tname}"
-        rs = berbl_experiments_unstandardized[exp_name]
-        exp_name_mod = f"berbl.non_literal.{tname}"
-        rs_mod = berbl_experiments_unstandardized[exp_name_mod]
-
-        d = pd.DataFrame({
-            "task": i,
-            "mean": rs[metrics].mean(),
-            "median": rs[metrics].median(),
-            # "std": rs[metrics].std(),
-            "max": rs[metrics].max(),
-            "mean ": rs_mod[metrics].mean(),
-            "median ": rs_mod[metrics].median(),
-            # "std ": rs_mod[metrics].std(),
-            "max ": rs_mod[metrics].max(),
-        })
-        d = pd.concat([d, drugowitsch_ga[tname]], axis=1)
-        d = d.rename(columns={tname: "GA"})
-        # d = pd.concat([d, drugowitsch_mcmc[tname]], axis=1)
-        # d = d.rename(columns={tname: "MCMC"})
-        d = d.round(2)
-
-        df = df.append(d)
-
-        # d2 = rs.groupby("params.data.seed")[metrics].mean()
-        # d2.index = [f"data seed {i}: mean" for i in d2.index]
-        # d = pd.concat([d, d2])
-
-        # d2 = rs.groupby("params.data.seed")[metrics].std()
-        # d2.index = [f"data seed {i}: std" for i in d2.index]
-        # d = pd.concat([d, d2])
-
-    df = df.reset_index().rename(columns={"index": "metric"})
-    df["metric"] = df["metric"].apply(
-        lambda s: "$K$"
-        if s == "metrics.elitist.size" else "$p(\MM \mid \DD)$")
-    df.index = pd.MultiIndex.from_arrays([df["task"], df["metric"]])
-    del df["task"]
-    del df["metric"]
-    print(df.to_latex(escape=False))
-
-    print("## Plotting median p(M | D) run for each task to compare plots")
+        "## Plotting median p(M | D) (or MAE) run for all algorithms and each "
+        "task to compare plots")
     print()
 
-    # Now plot one for each, show that they look the same as Drugowitsch's
-    # graphs.
+    exp_names = runs.unstack().index
+
     prediction_plots = {}
-    for exp_name, rs in berbl_experiments_unstandardized.items():
-        print(f"Plotting median p(M | D) run for {exp_name} …")
-        metric = "metrics.elitist.p_M_D"
-        r = rs[rs[metric] == rs[metric].quantile(
-            interpolation="higher")].iloc[0]
+    for exp_name in exp_names:
+        algorithm, variant, task = exp_name
+        if algorithm == "xcsf":
+            metric = "metrics.mae"
+            rs = runs
+        else:
+            metric = "metrics.elitist.p_M_D"
+            rs = keep_unstandardized(runs)
+
+        r = median_run(rs, metric, algorithm, variant, task)
+
+        print(f"Plotting median run for {exp_name} …")
         prediction_plots |= {exp_name: r}
         # TODO Ugly that we hardcode "mlruns/" here
         fixed_art_uri = f"{path}/{r['artifact_uri'].removeprefix('mlruns/')}"
@@ -202,205 +154,129 @@ def main(path, graphs, commit):
 
         if graphs:
             plt.show()
-
-    plt.close("all")
-
-    print()
-    print("## Performing statistical tests for literal vs. modular")
-    print()
-
-    # For each task perform a statistical test for three metrics
-    for metric in [
-            "metrics.elitist.p_M_D", "metrics.elitist.mae",
-            "metrics.elitist.size"
-    ]:
-        mshort = metric.removeprefix("metrics.elitist.")
-        means_literal = np.array([
-            berbl_experiments_unstandardized[f"berbl.book.{tname}"]
-            [metric].mean() for tname in task_names
-        ])
-        means_non_literal = np.array([
-            berbl_experiments_unstandardized[f"berbl.non_literal.{tname}"]
-            [metric].mean() for tname in task_names
-        ])
-        if mshort == "mae":
-            rope = 0.01
-        elif mshort == "p_M_D":
-            # Seems plausible on these problems
-            rope = 10
-        elif mshort == "size":
-            # Seems plausible on these problems
-            rope = 0.5
-        probs, fig = stat_test(means_literal,
-                               means_non_literal,
-                               rope=rope,
-                               plot=True)
-        save_plot("stat", f"literal-vs-modular-{mshort}", fig)
-        print(f"Literal vs. modular regarding {metric} (rope={rope}): {probs}")
-
-        if graphs:
-            plt.show()
-
-    # For each task perform a statistical test for three metrics but on standardized data
-    for metric in [
-            "metrics.elitist.p_M_D", "metrics.elitist.mae",
-            "metrics.elitist.size"
-    ]:
-        mshort = metric.removeprefix("metrics.elitist.")
-        means_literal = np.array([
-            berbl_experiments_standardized[f"berbl.book.{tname}"]
-            [metric].mean() for tname in task_names
-        ])
-        means_non_literal = np.array([
-            berbl_experiments_standardized[f"berbl.non_literal.{tname}"]
-            [metric].mean() for tname in task_names
-        ])
-        if mshort == "mae":
-            rope = 0.01
-        elif mshort == "p_M_D":
-            # Seems plausible on these problems
-            rope = 10
-        elif mshort == "size":
-            # Seems plausible on these problems
-            rope = 0.5
-        probs, fig = stat_test(means_literal,
-                               means_non_literal,
-                               rope=rope,
-                               plot=True)
-        save_plot("stat", f"literal-vs-modular-stand-{mshort}", fig)
-        print(f"Standardized literal vs. modular regarding {metric} (rope={rope}): {probs}")
-
-        if graphs:
-            plt.show()
-
-    print()
-    print("# Comparison with XCSF (MAE)")
-    print()
-
-    # Get all run data gathered for XCSF and perform a few checks.
-    print(
-        "Loading XCSF runs from mlflow and checking data, may take a few seconds …"
-    )
-    xcsf_experiments = {}
-    for exp_name in xcsf_experiment_names:
-        expid = exp_id(exp_name)
-        if commit is None:
-            rs = mlflow.search_runs(expid,
-                                    max_results=10000,
-                                    output_format="pandas")
         else:
-            rs = mlflow.search_runs(
-                expid, (f"tags.mlflow.source.git.commit = '{commit}'"),
-                max_results=10000,
-                output_format="pandas")
+            plt.close("all")
 
-        n_runs = 10 * 5
-        assert len(rs) == n_runs, (
-            f"There should be {n_runs} runs for {exp_name} (standardize = "
-            f" False) but there are {len(rs)}.")
-        # Check whether all runs being considered are finished
-        assert (rs.status != "FINISHED"
-                ).sum() == 0, f"Some runs for {exp_name} are not FINISHED yet."
 
-        xcsf_experiments |= {exp_name: rs}
+def stat_tests_lit_mod(runs):
+    print()
+    print("# Performing statistical tests for literal vs. modular")
+    print()
 
-    # For each task, get the mean mae for xcsf, literal and non_literal
-    means_xcsf = np.array([
-        xcsf_experiments[f"xcsf.book.{tname}"]["metrics.mae"].mean()
-        for tname in task_names
-    ])
-    # Use the interval-based experiments for a fair comparison.
-    literal_exps = {
-        "generated_function":
-        berbl_experiments_unstandardized[
-            "berbl.additional_literal.generated_function"],
-        "sparse_noisy_data":
-        berbl_experiments_unstandardized[
-            "berbl.additional_literal.sparse_noisy_data"],
-        "variable_noise":
-        berbl_experiments_unstandardized["berbl.book.variable_noise"],
-        "sine":
-        berbl_experiments_unstandardized["berbl.book.sine"]
-    }
-    means_literal = np.array([
-        literal_exps[tname]["metrics.elitist.mae"].mean()
-        for tname in task_names
-    ])
-    non_literal_exps = {
-        "generated_function":
-        berbl_experiments_unstandardized[
-            "berbl.additional_non_literal.generated_function"],
-        "sparse_noisy_data":
-        berbl_experiments_unstandardized[
-            "berbl.additional_non_literal.sparse_noisy_data"],
-        "variable_noise":
-        berbl_experiments_unstandardized["berbl.non_literal.variable_noise"],
-        "sine":
-        berbl_experiments_unstandardized["berbl.non_literal.sine"]
-    }
-    means_non_literal = np.array([
-        non_literal_exps[tname]["metrics.elitist.mae"].mean()
-        for tname in task_names
-    ])
+    runs = keep_unstandardized(runs)
 
-    df = pd.DataFrame()
-    i = 0
-    for tname in task_names:
-        i += 1
+    print("Keeping only reproduction BERBL experiments …")
+    # First level of index is algorithm.
+    rs = runs.loc["berbl"]
+    # Second level of index is variant.
+    rs = rs.loc[["book", "non_literal"]]
 
-        # Use the interval-based experiments for a fair comparison.
-        if tname in ["generated_function", "sparse_noisy_data"]:
-            literal_exp_name = f"berbl.additional_literal.{tname}"
-            modular_exp_name = f"berbl.additional_non_literal.{tname}"
-        else:
-            literal_exp_name = f"berbl.book.{tname}"
-            modular_exp_name = f"berbl.non_literal.{tname}"
+    assert len(rs) == 10 * 5 * (4 + 4)
 
-        rs_xcsf = xcsf_experiments[f"xcsf.book.{tname}"]
-        rs_literal = berbl_experiments_unstandardized[literal_exp_name]
-        rs_modular = berbl_experiments_unstandardized[modular_exp_name]
+    rs = rs.rename(lambda s: s.removeprefix("metrics.elitist."), axis=1)
 
-        berbl_metric_name = "metrics.elitist.mae"
-        xcsf_metric_name = "metrics.mae"
-        s = pd.Series(
-            {
-                "mean": rs_literal[berbl_metric_name].mean(),
-                "std": rs_literal[berbl_metric_name].std(),
-                "mean ": rs_modular[berbl_metric_name].mean(),
-                "std ": rs_modular[berbl_metric_name].std(),
-                "mean  ": rs_xcsf[xcsf_metric_name].mean(),
-                "std  ": rs_xcsf[xcsf_metric_name].std(),
-            },
-            name=i)
-        df = df.append(s)
+    means = rs.groupby(["variant", "task"]).mean()[metrics.keys()]
+    for metric, higher_better in metrics.items():
+        probs, fig = stat_test(means.loc["book"][metric],
+                               means.loc["non_literal"][metric],
+                               rope=ropes[metric],
+                               plot=True)
+        save_plot("stat", f"literal-vs-modular-{metric}", fig)
+        print_stat_results("lit", "mod", metric, probs, ropes[metric],
+                           higher_better)
+        print()
 
-    df["mean"] = df["mean"].round(4)
-    df["mean "] = df["mean "].round(4)
-    df["mean  "] = df["mean  "].round(4)
-    df["std"] = df["std"].round(2)
-    df["std "] = df["std "].round(2)
-    df["std  "] = df["std  "].round(2)
-    print(df.to_latex())
 
-    mshort = "mae"
-    probs, fig = stat_test(means_xcsf, means_literal, rope=0.01, plot=True)
-    print(f"Stat. test result for XCSF vs. literal: {probs}")
-    save_plot("stat", f"xcsf-vs-literal-{mshort}", fig)
-    probs, fig = stat_test(means_xcsf, means_non_literal, rope=0.01, plot=True)
-    print(f"Stat. test result for XCSF vs. modular: {probs}")
-    save_plot("stat", f"xcsf-vs-modular-{mshort}", fig)
+def table_stat_tests_berbl_xcsf(runs):
+    print()
+    print("# Comparison of BERBL with XCSF (MAE)")
+    print()
+
+    metric = "mae"
+
+    print("Selecting interval-based runs …")
+    rs_interval = runs[runs["params.match"] == "softint"]
+    rs_interval = keep_unstandardized(rs_interval)
+
+    rs_book = runs.loc[("berbl", "book")]
+    assert len(rs_interval) == len(rs_book), (
+        "There are params.matching==softint runs lacking for some experiments")
+
+    rs_lit = rs_interval[rs_interval["params.literal"] == "True"]
+    rs_mod = rs_interval[rs_interval["params.literal"] == "False"]
+    assert len(rs_lit) == len(rs_mod), ("Different number of runs for "
+                                        "interval-based literal and "
+                                        "modular")
+
+    groups_lit = rs_lit.sort_values("task").groupby(
+        "task")[f"metrics.elitist.{metric}"]
+    groups_mod = rs_mod.sort_values("task").groupby(
+        "task")[f"metrics.elitist.{metric}"]
+    groups_xcsf = runs.loc[("xcsf", "book")].groupby(["task"
+                                                      ])[f"metrics.{metric}"]
+
+    table = pd.DataFrame()
+    for grp, f in [
+        (groups, f) for f in [np.mean, np.std]
+            for groups in [("literal",
+                            groups_lit), ("modular",
+                                          groups_mod), ("xcsf", groups_xcsf)]
+    ]:
+        name, groups = grp
+        table = table.append(groups.agg(f).rename(f"{name}###{f.__name__}"))
+
+    table.index = table.index.map(lambda x: tuple(x.split("###")))
+    table.index = table.index.rename(["algorithm", "statistic"])
+    table = table.T
+    # TODO Store list of experiments/numbers/order at the toplevel
+    table = table.reindex(
+        ["generated_function", "sparse_noisy_data", "variable_noise", "sine"])
+    table = table.sort_values(by="algorithm", axis=1)
+
+    print(table)
+    print()
+    print(table.to_latex())
+    print()
 
     print()
-    print("## Plotting XCSF prediction BERBL median run")
+    print("## Statistical comparison of BERBL with XCSF (MAE)")
     print()
+
+    for variant in ["literal", "modular"]:
+        probs, fig = stat_test(table[("xcsf", "mean")],
+                               table[(variant, "mean")],
+                               rope=ropes[metric],
+                               plot=True)
+        save_plot("stat", f"xcsf-vs-{variant}-{metric}", fig)
+        print_stat_results(
+            "XCSF",
+            variant,
+            metric,
+            probs,
+            ropes[metric],
+            # Lower MAE are better.
+            higher_better=False)
+        print()
+
+
+def plot_extra_xcsf_prediction(runs, path, graphs):
+    print()
+    print("## Plotting XCSF prediction (median run re MAE) on data seed of "
+          "BERBL median run")
+    print()
+
+    data_seed = median_run(keep_unstandardized(runs), "metrics.elitist.p_M_D",
+                           "berbl", "non_literal",
+                           "generated_function")["params.data.seed"]
 
     exp_name = "xcsf.book.generated_function"
-    data_seed = prediction_plots["berbl.non_literal.generated_function"][
-        "params.data.seed"]
-    rs = xcsf_experiments[exp_name][xcsf_experiments[exp_name]
-                                    ["params.data.seed"] == data_seed]
+
+    rs_xcsf = runs.loc[("xcsf", "book", "generated_function")]
+    rs_xcsf = rs_xcsf[rs_xcsf["params.data.seed"] == data_seed]
     metric = "metrics.mae"
-    r = rs[rs[metric] == rs[metric].quantile(interpolation="higher")].iloc[0]
+    # TODO Ugly that we hardcode "mlruns/" here
+    r = rs_xcsf[rs_xcsf[metric] == rs_xcsf[metric].quantile(
+        interpolation="higher")].iloc[0]
     rid = r["run_id"]
     fixed_art_uri = f"{path}/{r['artifact_uri'].removeprefix('mlruns/')}"
     rdata = get_data(fixed_art_uri)
@@ -414,48 +290,35 @@ def main(path, graphs, commit):
 
     if graphs:
         plt.show()
+    else:
+        plt.close("all")
 
+
+def plot_berbl_pred_dist(runs, path, graphs):
     print()
-    print("## Plotting XCSF predictions (median runs re MAE)")
+    print("## Plotting BERBL predictive distribution")
     print()
 
-    for exp_name, rs in xcsf_experiments.items():
-        print(f"Plotting median MAE run for {exp_name} …")
-        metric = "metrics.mae"
-        r = rs[rs[metric] == rs[metric].quantile(
-            interpolation="higher")].iloc[0]
-        rid = r["run_id"]
-        # TODO Ugly that we hardcode "mlruns/" here
-        fixed_art_uri = f"{path}/{r['artifact_uri'].removeprefix('mlruns/')}"
-        rdata = get_data(fixed_art_uri)
-
-        fig, ax = plt.subplots()
-        plot_training_data(ax, fixed_art_uri)
-        plot_prediction(ax, fixed_art_uri)
-        ax.set_xlabel("Input x")
-        ax.set_ylabel("Output y")
-        save_plot(exp_name, "pred", fig)
-
-        if graphs:
-            plt.show()
-
-    plt.close("all")
-
-    # Now plot BERBL point distributions (median run).
     exp_name = "berbl.non_literal.generated_function"
+    r = median_run(keep_unstandardized(runs), "metrics.elitist.p_M_D", "berbl",
+                   "non_literal", "generated_function")
 
-    r = prediction_plots[exp_name]
+    # index 4 corresponds to p(y | x = 0.25), see
+    # experiments.berbl.BERBLExperiment.evaluate.
+    place = 0.25
+    index = 4
     print(
-        f"Plotting point distribution of median p(M | D) run for {exp_name} …")
+        f"Plotting point distribution at y={place} of median p(M | D) run for "
+        "{exp_name}")
     rid = r["run_id"]
     # TODO Ugly that we hardcode "mlruns/" here
     fixed_art_uri = f"{path}/{r['artifact_uri'].removeprefix('mlruns/')}"
     rdata = get_data(fixed_art_uri)
-    # prob_y_points_4 is 0.25, see experiments.berbl.BERBLExperiment.evaluate.
-    mean = rdata["y_points_mean"].loc[4][0]
-    std = rdata["y_points_std"].loc[4][0]
-    y = rdata["y_points_4"]
-    pdf = rdata["prob_y_points_4"]
+    breakpoint()
+    mean = rdata["y_points_mean"].loc[index][0]
+    std = rdata["y_points_std"].loc[index][0]
+    y = rdata[f"y_points_{index}"]
+    pdf = rdata[f"prob_y_points_{index}"]
 
     fig, ax = plt.subplots()
     std1 = mean - std
@@ -481,11 +344,69 @@ def main(path, graphs, commit):
               color="C0")
 
     ax.set_xlabel("Output y")
-    ax.set_ylabel("p(y | x = 0.25)")
-    save_plot(exp_name, f"dist-{i}", fig)
+    ax.set_ylabel(f"p(y | x = {place})")
+    save_plot(exp_name, f"dist-{place}", fig)
 
     if graphs:
         plt.show()
+    else:
+        plt.close("all")
+
+
+@click.command()
+@click.argument("PATH")
+@click.option("--graphs/--no-graphs",
+              default=False,
+              help="Whether to show all plots and graphs",
+              show_default=True)
+@click.option("--commit",
+              default=None,
+              help="Only consider runs that ran from this commit",
+              show_default=True)
+def main(path, graphs, commit):
+    """
+    Analyse the parameter search results found at PATH.
+    """
+    mlflow.set_tracking_uri(path)
+
+    berbl_experiment_names = [
+        f"berbl.{exp_name}" for exp_name in runpy.berbl_experiments
+    ]
+    xcsf_experiment_names = [
+        f"xcsf.{exp_name}" for exp_name in runpy.xcsf_experiments
+    ]
+    exp_names = berbl_experiment_names + xcsf_experiment_names
+
+    runs = read_mlflow(exp_names, commit=commit)
+
+    n_runs = (
+        # BERBL experiments (4 from book, 4 from book with modular backend, 2
+        # additional each with interval-based matching).
+        (((4 + 4 + 2 + 2)
+          # BERBL experiments were performed twice, w/ and w/o standardization.
+          * 2)
+         # XCSF experiments.
+         + 4)
+        # 5 data seeds per experiment.
+        * 5
+        # 10 runs.
+        * 10)
+    assert len(
+        runs) == n_runs, f"Expected {n_runs} runs but there were {len(runs)}"
+
+    table_compare_drugowitsch(runs)
+
+    plot_median_predictions(runs, path, graphs)
+
+    stat_tests_lit_mod(runs)
+
+    table_stat_tests_berbl_xcsf(runs)
+
+    plot_extra_xcsf_prediction(runs, path, graphs)
+
+    plot_berbl_pred_dist(runs, path, graphs)
+
+    # TODO Perform statistical tests on standardized data, too
 
 
 if __name__ == "__main__":
