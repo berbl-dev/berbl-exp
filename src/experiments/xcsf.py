@@ -7,14 +7,14 @@ import mlflow  # type: ignore
 import pyparsing as pp  # type: ignore
 import xcsf.xcsf as xcsf  # type: ignore
 from berbl.utils import randseed
-from experiments.utils import log_array, plot_prediction, save_plot
 from sklearn import metrics  # type: ignore
 from sklearn.base import BaseEstimator, RegressorMixin  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 from sklearn.utils.validation import check_array  # type: ignore
 from sklearn.utils.validation import check_is_fitted, check_X_y
 
-from .. import Experiment
+from .utils import log_array, plot_prediction, save_plot
+from . import Experiment
 
 
 class XCSFExperiment(Experiment):

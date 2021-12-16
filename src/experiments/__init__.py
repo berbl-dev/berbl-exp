@@ -4,9 +4,10 @@ import importlib
 import mlflow  # type: ignore
 import sklearn.compose as compose  # type: ignore
 import sklearn.pipeline as pipeline  # type: ignore
-from experiments.utils import log_array
 from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils.validation import check_is_fitted  # type: ignore
+
+from .utils import log_array
 
 def get_data(module, data_seed):
     task_path = f"tasks.{module}"

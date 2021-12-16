@@ -6,11 +6,11 @@ from berbl.literal.hyperparams import HParams
 from berbl.match.radial1d_drugowitsch import RadialMatch1D
 from berbl.match.softinterval1d_drugowitsch import SoftInterval1D
 from berbl.search.operators.drugowitsch import DefaultToolbox
-from experiments.utils import log_array, plot_prediction, save_plot
 from sklearn import metrics  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
-from .. import Experiment, maybe_override
+from . import Experiment, maybe_override
+from .utils import log_array, plot_prediction, save_plot
 
 
 class BERBLExperiment(Experiment):

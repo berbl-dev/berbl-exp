@@ -20,7 +20,7 @@ def log_array(a, label):
     mlflow.log_text(pd.DataFrame(a).to_csv(), f"{label}.csv")
 
 
-# TODO Reduce duplication with evaluation.*
+# TODO Reduce duplication with berbl-eval
 def plot_prediction(X,
                     y,
                     X_test,
