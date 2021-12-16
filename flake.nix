@@ -26,9 +26,12 @@
     };
       python3.pkgs.buildPythonPackage rec {
         pname = "berbl-exp";
-        version = "0.1.0";
+        version = "1.0.0";
 
         src = self;
+
+        # We use pyproject.toml.
+        format = "pyproject";
 
         propagatedBuildInputs = with python3.pkgs; [
           berbl.defaultPackage.x86_64-linux
