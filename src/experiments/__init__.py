@@ -9,6 +9,7 @@ from sklearn.utils.validation import check_is_fitted  # type: ignore
 
 from .utils import log_array
 
+
 def get_data(module, data_seed):
     task_path = f"tasks.{module}"
     task_mod = importlib.import_module(task_path)
@@ -138,13 +139,20 @@ class Experiment(abc.ABC):
                  data_seed,
                  standardize,
                  show,
+                 exp_path_prefix="experiments",
                  run_name=None,
                  tracking_uri="mlflow/"):
+        """
+        Parameters
+        ----------
+        exp_path_prefix : str
+            Prefix used when importing experiment configurations.
+        """
         self.experiment_name = experiment_name(self.algorithm, module)
 
         self.seed = seed
 
-        exp_path = f"experiments.{self.experiment_name}"
+        exp_path = f"{exp_path_prefix}.{self.experiment_name}"
         exp_mod = importlib.import_module(exp_path)
         self.params = exp_mod.params
 
