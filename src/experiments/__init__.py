@@ -49,7 +49,8 @@ class IdentityTargetRegressor(compose.TransformedTargetRegressor):
         return self.regressor_.predicts(X, **predicts_params)
 
     def predict_distribution(self, X, **predict_distribution_params):
-        return self.regressor_.predict_distribution(X, **predict_distribution_params)
+        return self.regressor_.predict_distribution(
+            X, **predict_distribution_params)
 
 
 class StandardScaledTargetRegressor(compose.TransformedTargetRegressor):
@@ -84,7 +85,8 @@ class StandardScaledTargetRegressor(compose.TransformedTargetRegressor):
             # TODO Is this correct? We won't use it before we checked
             jacobian_factor = self.transformer_.scale_
             y_trans = self.transformer_.inverse_transform(y)
-            p = self.regressor_.predict_distribution(X, **predict_distribution_params)(y_trans) * jacobian_factor
+            p = self.regressor_.predict_distribution(
+                X, **predict_distribution_params)(y_trans) * jacobian_factor
             return self.transformer_.inverse_transform(p)
 
         return pdf
