@@ -22,7 +22,7 @@
 
     defaultPackage.x86_64-linux = with import nixpkgs {
       system = "x86_64-linux";
-      overlays = with overlays.overlays; [ mlflow pandas ];
+      overlays = with overlays.overlays; [ mlflow ];
     };
       python3.pkgs.buildPythonPackage rec {
         pname = "berbl-exp";

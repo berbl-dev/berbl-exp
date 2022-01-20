@@ -6,7 +6,7 @@
         "overlays": "overlays"
       },
       "locked": {
-        "narHash": "sha256-IPUucvAIdX5Nr3hENwmkbIwhxgxWCgCvb5iSLifrJ9g=",
+        "narHash": "sha256-+ehHyz2ufqkc+D9N/oQ4fG0zmjumJBAdZEMsUKkEKxw=",
         "path": "/home/david/Projekte/berbl/berbl",
         "type": "path"
       },
