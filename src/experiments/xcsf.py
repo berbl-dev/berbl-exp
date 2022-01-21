@@ -195,12 +195,10 @@ class XCSF(BaseEstimator, RegressorMixin):
 
         xcs.action("integer")  # (dummy) integer actions
 
-        # NOTE Preen: “Hyperrectangles and hyperellipsoids currently use the
-        # centre-spread representation (and axis-rotation is not yet implemented.)”
         args = {
-            "min": -1,  # minimum value of a center
-            "max": 1,  # maximum value of a center
-            "spread-min": 0.1,  # minimum initial spread
+            "min": -1,  # minimum value of a lower bound
+            "max": 1,  # maximum value of an upper bound
+            "spread_min": 0.1,  # minimum initial spread
             "eta":
             0,  # disable gradient descent of centers towards matched input mean
         }
@@ -209,22 +207,22 @@ class XCSF(BaseEstimator, RegressorMixin):
         mlflow.log_param("xcs.condition", condition_string)
         mlflow.log_param("xcs.condition.args.min", args["min"])
         mlflow.log_param("xcs.condition.args.max", args["max"])
-        mlflow.log_param("xcs.condition.args.spread-min", args["spread-min"])
+        mlflow.log_param("xcs.condition.args.spread_min", args["spread_min"])
         mlflow.log_param("xcs.condition.args.eta", args["eta"])
 
         args = {
             "x0": 1,  # bias attribute
-            "rls-scale-factor":
+            "rls_scale_factor":
             1000,  # initial diagonal values of the gain-matrix
-            "rls-lambda": 1,  # forget rate (small values may be unstable)
+            "rls_lambda": 1,  # forget rate (small values may be unstable)
         }
-        prediction_string = "rls-linear"
+        prediction_string = "rls_linear"
         xcs.prediction(prediction_string, args)
         mlflow.log_param("xcs.prediction", prediction_string)
         mlflow.log_param("xcs.prediction.args.x0", args["x0"])
-        mlflow.log_param("xcs.prediction.args.rls-scale-factor",
-                         args["rls-scale-factor"])
-        mlflow.log_param("xcs.prediction.args.rls-lambda", args["rls-lambda"])
+        mlflow.log_param("xcs.prediction.args.rls_scale_factor",
+                         args["rls_scale_factor"])
+        mlflow.log_param("xcs.prediction.args.rls_lambda", args["rls_lambda"])
 
         xcs.fit(X, y, True)
 
