@@ -1,7 +1,7 @@
 {
   description = "berbl-exp";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-21.11";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.overlays.url = "github:dpaetzel/overlays";
   inputs.berbl = {
     type = "path";
@@ -24,7 +24,8 @@
       system = "x86_64-linux";
       overlays = with overlays.overlays; [ mlflow ];
     };
-      python3.pkgs.buildPythonPackage rec {
+      let python = python39;
+      in python.pkgs.buildPythonPackage rec {
         pname = "berbl-exp";
         version = "1.0.0";
 
@@ -33,7 +34,7 @@
         # We use pyproject.toml.
         format = "pyproject";
 
-        propagatedBuildInputs = with python3.pkgs; [
+        propagatedBuildInputs = with python.pkgs; [
           berbl.defaultPackage.x86_64-linux
           mlflow
           numpy

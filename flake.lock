@@ -6,7 +6,7 @@
         "overlays": "overlays"
       },
       "locked": {
-        "narHash": "sha256-+ehHyz2ufqkc+D9N/oQ4fG0zmjumJBAdZEMsUKkEKxw=",
+        "narHash": "sha256-4KGkZHDKsHHFVSSUKJQH0WZnvNVaFgfH1Fsij4dUpj8=",
         "path": "/home/david/Projekte/berbl/berbl",
         "type": "path"
       },
@@ -17,32 +17,32 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1642609835,
-        "narHash": "sha256-ZwJnV4mdis28u5vH240ec2mrApuEJYJekn23qlTwJ8c=",
+        "lastModified": 1642635915,
+        "narHash": "sha256-vabPA32j81xBO5m3+qXndWp5aqepe+vu96Wkd9UnngM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "77aa71f66fd05d9e7b7d1c084865d703a8008ab7",
+        "rev": "6d8215281b2f87a5af9ed7425a26ac575da0438f",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-21.11",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1642609835,
-        "narHash": "sha256-ZwJnV4mdis28u5vH240ec2mrApuEJYJekn23qlTwJ8c=",
+        "lastModified": 1642635915,
+        "narHash": "sha256-vabPA32j81xBO5m3+qXndWp5aqepe+vu96Wkd9UnngM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "77aa71f66fd05d9e7b7d1c084865d703a8008ab7",
+        "rev": "6d8215281b2f87a5af9ed7425a26ac575da0438f",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-21.11",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -65,11 +65,11 @@
     },
     "overlays": {
       "locked": {
-        "lastModified": 1639481218,
-        "narHash": "sha256-67wlhb/jyZM6rKw9ogFRu02l/7E9yWB+Ifiz0tpDDE8=",
+        "lastModified": 1642696974,
+        "narHash": "sha256-FsCi7tTaLUAjU731Dax7snjyrXm8WcYepl4SduTd8Xs=",
         "owner": "dpaetzel",
         "repo": "overlays",
-        "rev": "335e67f0abfbc8a493b2bd6fe23e3f74da96dac2",
+        "rev": "55735b0f0303437771933e7e70147fca2666dfb1",
         "type": "github"
       },
       "original": {
@@ -80,11 +80,11 @@
     },
     "overlays_2": {
       "locked": {
-        "lastModified": 1642693472,
-        "narHash": "sha256-6uvoHjAj6Qg1iixw+S2Gu8LXgE9QvYf/N/LGq6TiGp8=",
+        "lastModified": 1642696974,
+        "narHash": "sha256-FsCi7tTaLUAjU731Dax7snjyrXm8WcYepl4SduTd8Xs=",
         "owner": "dpaetzel",
         "repo": "overlays",
-        "rev": "29b04eaabc0b4e32cb18438a80aa6a7c8e13d4d8",
+        "rev": "55735b0f0303437771933e7e70147fca2666dfb1",
         "type": "github"
       },
       "original": {
@@ -106,10 +106,10 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1639583968,
-        "narHash": "sha256-/weJR5NKa43df/0E6W81uWV+qc8eXYLVyDT3qe0wA0I=",
+        "lastModified": 1642696868,
+        "narHash": "sha256-UDDHrsmR079O4a9XpW/eRKaOtkcO9Zv3llfNSCgOgfg=",
         "ref": "unordered-bound-intervals",
-        "rev": "6724f2bcae2e90e8053721aeef40809a119e5577",
+        "rev": "179bb685feb521d6da18db886c0f6a08c3ed7280",
         "revCount": 2295,
         "submodules": true,
         "type": "git",
