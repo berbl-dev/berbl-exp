@@ -6,7 +6,7 @@
         "overlays": "overlays"
       },
       "locked": {
-        "narHash": "sha256-4KGkZHDKsHHFVSSUKJQH0WZnvNVaFgfH1Fsij4dUpj8=",
+        "narHash": "sha256-bVoA/dR4hxKknHC9j5zghaTgImnOmIvXRvUjguS151k=",
         "path": "/home/david/Projekte/berbl/berbl",
         "type": "path"
       },
@@ -49,16 +49,16 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1639161226,
-        "narHash": "sha256-75Y08ynJDTq6HHGIF+8IADBJSVip0UyWQH7jqSFnRR8=",
+        "lastModified": 1642635915,
+        "narHash": "sha256-vabPA32j81xBO5m3+qXndWp5aqepe+vu96Wkd9UnngM=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "573095944e7c1d58d30fc679c81af63668b54056",
+        "rev": "6d8215281b2f87a5af9ed7425a26ac575da0438f",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-21.11",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -106,10 +106,10 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1642696868,
-        "narHash": "sha256-UDDHrsmR079O4a9XpW/eRKaOtkcO9Zv3llfNSCgOgfg=",
+        "lastModified": 1642757444,
+        "narHash": "sha256-Uw1MagkipRKSRzjJeYUppX9vCIV/6GDGsogsAjXK0FA=",
         "ref": "unordered-bound-intervals",
-        "rev": "179bb685feb521d6da18db886c0f6a08c3ed7280",
+        "rev": "c069d279b782f9e163ac05eb1400dd0f1a59aff7",
         "revCount": 2295,
         "submodules": true,
         "type": "git",
