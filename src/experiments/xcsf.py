@@ -4,7 +4,6 @@ import tempfile
 import experiments.utils as utils  # type: ignore
 import matplotlib.pyplot as plt  # type: ignore
 import mlflow  # type: ignore
-import pyparsing as pp  # type: ignore
 import xcsf.xcsf as xcsf  # type: ignore
 from berbl.utils import randseed
 from sklearn import metrics  # type: ignore
