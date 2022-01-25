@@ -2,6 +2,7 @@ import abc
 import importlib
 
 import mlflow  # type: ignore
+import numpy as np  # type: ignore
 import sklearn.compose as compose  # type: ignore
 import sklearn.pipeline as pipeline  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
@@ -78,7 +79,7 @@ class StandardScaledTargetRegressor(compose.TransformedTargetRegressor):
         # here as in
         # https://github.com/scikit-learn/scikit-learn/blob/0d378913b/sklearn/compose/_target.py#L275
         ys = self.regressor_.predicts(X, **predicts_params)
-        return self.transformer_.inverse_transform(ys)
+        return np.array([self.transformer_.inverse_transform(y) for y in ys])
 
     def predict_distribution(self, X, **predict_distribution_params):
         def pdf(y):
