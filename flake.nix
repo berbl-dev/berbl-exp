@@ -9,7 +9,6 @@
     type = "path";
     path = "/home/david/Projekte/berbl/berbl";
   };
-  # TODO inputs.berbl.url = "github:dpaetzel/berbl";
   inputs.xcsf = {
     type = "git";
     url = "https://github.com/dpaetzel/xcsf";
@@ -18,7 +17,6 @@
     # allRefs = true;
     submodules = true;
   };
-  # TODO Add berbl-eval to reduce plotting duplication
 
   outputs = { self, nixpkgs, overlays, berbl, xcsf }: {
 
