@@ -31,13 +31,19 @@ class BERBLExperiment(Experiment):
         else:
             print(f"Unsupported match function family: {self.params['match']}")
 
+        try:
+            match_args = self.params["match_args"]
+        except:
+            match_args = {}
+
         toolbox = DefaultToolbox(matchcls=matchcls,
                                  n=self.params["n"],
                                  p=self.params["p"],
                                  tournsize=self.params["tournsize"],
                                  literal=self.params["literal"],
                                  fit_mixing=self.params["fit_mixing"],
-                                 random_state=random_state)
+                                 random_state=random_state,
+                                 match_args=match_args)
 
         self.estimator = BERBL(toolbox,
                                search="drugowitsch",
