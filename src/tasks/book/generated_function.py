@@ -11,6 +11,7 @@ ms = [
     RadialMatch1D(mu=0.8, sigma_2=0.05, has_bias=False),
 ]
 
+
 def generate(n: int = 300,
              noise=True,
              X=None,
@@ -69,13 +70,41 @@ def generate(n: int = 300,
         for k in range(len(ms)):
             # sample the three classifiers
             if noise:
-                y[n] += random_state.normal(loc=G[n][k] * (W[k] @ X_[n]),
-                                            scale=Lambda_1[k])
+                y[n] += G[n][k] * random_state.normal(loc=(W[k] @ X_[n]),
+                                                      scale=Lambda_1[k])
             else:
                 y[n] += G[n][k] * (W[k] @ X_[n])
 
+    # LCSBookCode does it like this.
+    # def own_f(x):
+    #     """Returns f(x) for given x.
+    #     """
+    #     from numpy import (arange, array, dot, double, empty, exp, hstack, inf,
+    #                        linspace, ones, pi, power, sin, sort, sqrt, sum)
+    #     # functions are
+    #     # f1(x) = 0.05 + 0.5 x
+    #     # f2(x) = 2 - 4 x
+    #     # f3(x) = -1.5 + 2.5 x
+    #     fns = array([[0.05, 0.5], [2.0, -4.0], [-1.5, 2.5]], double)
+    #     # gaussian basis functions are given by (mu, var, weight):
+    #     # (0.2, 0.05), (0.5, 0.01), (0.8, 0.05)
+    #     gbfs = array([[0.2, 0.05, 0.5], [0.5, 0.01, 1.0], [0.8, 0.05, 0.4]],
+    #                  double)
+    #     # plain function values
+    #     fx = fns[:, 0] + x * fns[:, 1]
+    #     #print "%f\t%f\t%f\t%f" % (x, fx[0], fx[1], fx[2])
+    #     # mixing weights
+    #     mx = gbfs[:, 2] * exp(-0.5 / gbfs[:, 1] * power(x - gbfs[:, 0], 2.0))
+    #     mx /= sum(mx)
+    #     #print "%f\t%f\t%f\t%f" % (x, mx[0], mx[1], mx[2])
+    #     # return mixed function
+    #     return dot(fx, mx)
+    # y_ = np.array([own_f(x) for x in X])
+    # y_ += random_state.normal(size=y_.shape) * 0.1
+
     # Return the non-augmented data points.
     return X, y
+
 
 def data(data_seed):
     X, y = generate(random_state=data_seed)
