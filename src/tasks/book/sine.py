@@ -2,10 +2,12 @@ import numpy as np  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
 
-def f(x, noise_var=0.15, random_state: np.random.RandomState = 0):
+# NOTE Drugowitsch writes noise variance being 0.15 in his text but uses
+# std=0.15 in the code accompanying his book.
+def f(x, noise_std=0.15, random_state: np.random.RandomState = 0):
     random_state = check_random_state(random_state)
     return np.sin(2 * np.pi * x) + random_state.normal(
-        0, np.sqrt(noise_var), size=x.shape)
+        0, noise_std, size=x.shape)
 
 
 def generate(n: int = 300, random_state: np.random.RandomState = 0):
@@ -44,7 +46,7 @@ def data(data_seed):
 
     # generate equidistant, denoised data as well (only for visual reference)
     X_denoised = np.linspace(-1, 1, 100)[:, np.newaxis]
-    y_denoised = f(X_denoised, noise_var=0)
+    y_denoised = f(X_denoised, noise_std=0)
 
     return {
         "X": X,

@@ -1,6 +1,8 @@
 import numpy as np  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 
+# This task is called “waterhouse” in LCSBookCode.
+
 def f(x,
       noise_var: float = 0.2,
       random_state: np.random.RandomState = 0):
@@ -16,6 +18,9 @@ def f(x,
 
     # NOTE LCSBookCode's first factor is 4.26 which differs from the book's
     # 4.25.
+    # NOTE LCSBookCode uses `sqrt(var) * randn()` which corresponds to our a
+    # normal distribution with variance var (and standard deviation
+    # `sqrt(var)`).
     return 4.25 * (np.exp(-x) - 4 * np.exp(-2 * x)
                    + 3 * np.exp(-3 * x)) + random_state.normal(
                        0, np.sqrt(noise_var), size=x.shape)
