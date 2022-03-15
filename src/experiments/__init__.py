@@ -22,9 +22,14 @@ def experiment_name(algorithm, module):
 
 
 def maybe_override(params, param, value):
-    if value is not None and params[param] != value:
+    if value is None:
+        return
+    elif param in params and params[param] != value:
         print(f"Warning: Overriding {param}={params[param]} with "
               f"{param}={value}")
+        params[param] = value
+    elif param not in params:
+        print(f"Warning: Forcing {param}={value}")
         params[param] = value
 
 

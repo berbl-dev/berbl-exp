@@ -1,3 +1,4 @@
+from copy import deepcopy
 import matplotlib.pyplot as plt  # type: ignore
 import mlflow  # type: ignore
 import numpy as np  # type: ignore
@@ -36,6 +37,18 @@ class BERBLExperiment(Experiment):
         except:
             match_args = {}
 
+        # Overrides for low level parameters (i.e. for ``Mixing``, ``Rule``,
+        # ``Mixture`` etc.). We want to keep ``self.params`` as it is but cannot
+        # have the same keyward argument to ``DefaultToolbox`` repeated.
+        low_params = deepcopy(self.params)
+        del low_params["n"]
+        del low_params["p"]
+        del low_params["tournsize"]
+        del low_params["literal"]
+        del low_params["fit_mixing"]
+        del low_params["match_args"]
+        del low_params["match"]
+
         toolbox = DefaultToolbox(matchcls=matchcls,
                                  n=self.params["n"],
                                  p=self.params["p"],
@@ -48,7 +61,7 @@ class BERBLExperiment(Experiment):
                                  # This way, we can override Rule, Mixing and
                                  # Mixture hyperparameters from
                                  # Experiment.run().
-                                 **self.params)
+                                 **low_params)
 
         self.estimator = BERBL(toolbox,
                                search="drugowitsch",
