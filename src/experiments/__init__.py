@@ -170,6 +170,13 @@ class Experiment(abc.ABC):
         mlflow.set_tracking_uri(self.tracking_uri)
 
     def run(self, **kwargs):
+        """
+        Parameters
+        ----------
+        kwargs : kwargs
+            Overrides for evolutionary parameters as well as parameters provided
+            to ``Mixing``, ``Rule`` and ``Mixture``.
+        """
         for key in kwargs:
             maybe_override(self.params, key, kwargs[key])
 

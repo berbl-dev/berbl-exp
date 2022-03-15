@@ -43,7 +43,12 @@ class BERBLExperiment(Experiment):
                                  literal=self.params["literal"],
                                  fit_mixing=self.params["fit_mixing"],
                                  random_state=random_state,
-                                 match_args=match_args)
+                                 match_args=match_args,
+                                 # Provide all parameters as keyword arguments.
+                                 # This way, we can override Rule, Mixing and
+                                 # Mixture hyperparameters from
+                                 # Experiment.run().
+                                 **self.params)
 
         self.estimator = BERBL(toolbox,
                                search="drugowitsch",
