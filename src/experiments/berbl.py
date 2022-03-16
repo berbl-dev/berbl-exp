@@ -46,7 +46,10 @@ class BERBLExperiment(Experiment):
         del low_params["tournsize"]
         del low_params["literal"]
         del low_params["fit_mixing"]
-        del low_params["match_args"]
+        try:
+            del low_params["match_args"]
+        except:
+            pass
         del low_params["match"]
 
         toolbox = DefaultToolbox(matchcls=matchcls,
