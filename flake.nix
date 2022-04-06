@@ -1,12 +1,6 @@
 {
   description = "berbl-exp";
 
-  # 2022-01-24
-  inputs.nixpkgs.url =
-    "github:NixOS/nixpkgs/8ca77a63599ed951d6a2d244c1d62092776a3fe1";
-
-  inputs.overlays.url = "github:dpaetzel/overlays";
-
   inputs.berbl.url = "github:berbl-dev/berbl";
 
   inputs.xcsf = {
@@ -18,11 +12,11 @@
     submodules = true;
   };
 
-  outputs = { self, nixpkgs, overlays, berbl, xcsf }: {
+  outputs = { self, berbl, xcsf }: {
 
-    defaultPackage.x86_64-linux = with import nixpkgs {
+    defaultPackage.x86_64-linux = with import berbl.inputs.nixpkgs {
       system = "x86_64-linux";
-      overlays = with overlays.overlays; [ mlflow ];
+      overlays = with berbl.inputs.overlays.overlays; [ mlflow ];
     };
       let python = python39;
       in python.pkgs.buildPythonPackage rec {
@@ -41,7 +35,6 @@
           numpydoc
           pandas
           scipy
-          sphinx
           xcsf.defaultPackage.x86_64-linux
         ];
 
