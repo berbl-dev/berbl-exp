@@ -11,6 +11,7 @@
     # allRefs = true;
     submodules = true;
   };
+  inputs.xcsf.inputs.nixpkgs.follows = "berbl/nixpkgs";
 
   outputs = { self, berbl, xcsf }: {
 
