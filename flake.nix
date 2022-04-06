@@ -4,11 +4,11 @@
   # 2022-01-24
   inputs.nixpkgs.url =
     "github:NixOS/nixpkgs/8ca77a63599ed951d6a2d244c1d62092776a3fe1";
+
   inputs.overlays.url = "github:dpaetzel/overlays";
-  inputs.berbl = {
-    type = "path";
-    path = "/home/david/Projekte/berbl/berbl";
-  };
+
+  inputs.berbl.url = "github:berbl-dev/berbl";
+
   inputs.xcsf = {
     type = "git";
     url = "https://github.com/dpaetzel/xcsf";
