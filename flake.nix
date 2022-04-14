@@ -1,7 +1,7 @@
 {
   description = "berbl-exp";
 
-  inputs.berbl.url = "github:berbl-dev/berbl/v0.1.0-beta";
+  inputs.berbl.url = "github:berbl-dev/berbl";
 
   inputs.xcsf = {
     type = "git";
