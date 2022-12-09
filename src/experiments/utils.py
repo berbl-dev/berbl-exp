@@ -3,9 +3,9 @@ import io
 import json
 import os
 import sys
-import tempfile
 from contextlib import contextmanager
 
+import warnings
 import matplotlib.pyplot as plt  # type: ignore
 import mlflow  # type: ignore
 import numpy as np  # type: ignore
@@ -17,6 +17,8 @@ def log_json(a, label):
 
 
 def log_array(a, label):
+    warnings.warn("log_array is deprecated, use log_arrays instead",
+                  DeprecationWarning)
     mlflow.log_text(pd.DataFrame(a).to_csv(), f"{label}.csv")
 
 
