@@ -203,6 +203,7 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
         mlflow.log_param("seed", seed)
 
         data = np.load(npzfile)
+        mlflow.log_param("data.fname", npzfile)
 
         X = data["X"]
         y = data["y"]
