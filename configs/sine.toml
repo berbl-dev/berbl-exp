@@ -1,0 +1,25 @@
+matchcls = "interval"
+
+
+[toolbox.crossover]
+tournsize = 5
+
+
+[toolbox.fitness]
+literal = false
+fit_mixing = "laplace"
+
+
+[toolbox.init]
+n = 8
+p = 0.5
+
+
+[match]
+x_min = -2.0
+x_max = 2.0
+
+
+[search]
+n_iter = 250
+pop_size = 20
