@@ -162,7 +162,7 @@ def cli():
     type=str,
     show_default=True,
     # TODO Write help
-    help=(""))
+    help="Algorithm configuration to use")
 @click.option("--n-iter",
               default=None,
               type=int,
