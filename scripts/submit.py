@@ -36,7 +36,7 @@ def cli():
               default=30,
               show_default=True,
               help="Number of times to repeat experiment")
-# TODO Maybe @click.option("--seed-offset")
+# TODO Maybe @click.option("--seed-offset") to set seed_offset
 @click.option("--experiment-name", type=str, required=True)
 @click.option("-F",
               "--config-file",
@@ -47,14 +47,19 @@ def cli():
 @click.argument("NPZFILE")
 def submit(slurm_options, n_reps, experiment_name, config_file, npzfile):
 
+    if slurm_options is not None:
+        raise NotImplementedError("Has to be implemented")
+
     job_dir, results_dir = get_dirs()
+
+    seed_offset = 0
 
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
         # Default Slurm settings.
         f'#SBATCH --nodelist=oc-compute03',
         f'#SBATCH --time=1-00:00:00',
-        f'#SBATCH --mem=4G',
+        f'#SBATCH --mem=2G',
         f'#SBATCH --partition=cpu-prio',
         f'#SBATCH --output="{results_dir}/output/output-%A-%a.txt"',
         f'#SBATCH --array=0-{n_reps - 1}',
@@ -66,6 +71,7 @@ def submit(slurm_options, n_reps, experiment_name, config_file, npzfile):
             f'python scripts/run.py run "{npzfile}" '
             f'{"" if config_file is None else "--config-file={config_file}"} '
             f'--experiment-name={experiment_name} '
+            f'--seed=$(({seed_offset} + $SLURM_ARRAY_TASK_ID)) '
             '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}\n')
     ])
     print(sbatch)
