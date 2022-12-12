@@ -2,12 +2,10 @@
   description = "berbl-exp";
 
   inputs = {
-    nixos-config.url = "github:dpaetzel/nixos-config";
+    berbl.url = "github:berbl-dev/berbl/add-hardinterval";
 
-    # inputs.berbl.url = "github:berbl-dev/berbl/v0.1.0-beta";
-    berbl.url = "github:berbl-dev/berbl/develop";
-    berbl.inputs.nixpkgs.follows = "nixos-config/nixpkgs";
-
+    # FIXME Broken due to only supporting python39 (have to change that in the
+    # flake)
     xcsf = {
       type = "git";
       # TODO Update xcsf from upstream
@@ -17,21 +15,18 @@
       # allRefs = true;
       submodules = true;
     };
-    xcsf.inputs.nixpkgs.follows = "nixos-config/nixpkgs";
+    xcsf.inputs.nixpkgs.follows = "berbl/nixos-config/nixpkgs";
   };
 
-  outputs = { self, berbl, xcsf, nixos-config }:
+  outputs = { self, berbl, xcsf }:
 
     let
-      nixpkgs = nixos-config.inputs.nixpkgs;
+      nixpkgs = berbl.inputs.nixos-config.inputs.nixpkgs;
       system = "x86_64-linux";
-      pkgs = import nixpkgs {
-        inherit system;
-        overlays = with berbl.inputs.overlays.overlays; [ mlflow ];
-      };
-      # TODO Upgrade this (and berbl etc.) to python310
-      python = pkgs.python39;
+      pkgs = import nixpkgs { inherit system; };
+      python = pkgs.python310;
     in rec {
+
       defaultPackage.${system} = python.pkgs.buildPythonPackage rec {
         pname = "berbl-exp";
         version = "1.0.0";
@@ -43,11 +38,13 @@
 
         propagatedBuildInputs = with python.pkgs; [
           berbl.defaultPackage.x86_64-linux
+          click
           mlflow
           numpy
           numpydoc
           pandas
           scipy
+          tomli
           xcsf.defaultPackage.${system}
 
           ipython
@@ -60,6 +57,31 @@
             "Library for performing experiments with the BERBL library";
           license = licenses.gpl3;
         };
+      };
+
+      devShell.${system} = pkgs.mkShell {
+
+        buildInputs = with python.pkgs; [
+          ipython
+          (python.withPackages
+            (p: defaultPackage.${system}.propagatedBuildInputs))
+          venvShellHook
+        ];
+
+        venvDir = "./_venv";
+
+        postShellHook = ''
+          unset SOURCE_DATE_EPOCH
+
+          export LD_LIBRARY_PATH="${
+            pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc ]
+          }:$LD_LIBRARY_PATH";
+        '';
+
+        postVenvCreation = ''
+          unset SOURCE_DATE_EPOCH
+        '';
+
       };
     };
 }
