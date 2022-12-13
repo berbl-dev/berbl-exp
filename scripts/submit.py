@@ -54,6 +54,9 @@ def submit(slurm_options, n_reps, experiment_name, config_file, npzfile):
 
     seed_offset = 0
 
+    config_file_option = ("" if config_file is None else
+                          f"--config-file=\"{config_file}\"")
+
     sbatch = "\n".join([
         f'#!/usr/bin/env bash',  #
         # Default Slurm settings.
@@ -69,7 +72,7 @@ def submit(slurm_options, n_reps, experiment_name, config_file, npzfile):
             f'srun '
             f'nix develop "{job_dir}" --command '
             f'python scripts/run.py run "{npzfile}" '
-            f'{"" if config_file is None else "--config-file={config_file}"} '
+            f'{config_file_option} '
             f'--experiment-name={experiment_name} '
             f'--seed=$(({seed_offset} + $SLURM_ARRAY_TASK_ID)) '
             '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}\n')
