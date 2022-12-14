@@ -66,11 +66,15 @@ def submit(slurm_options, n_reps, experiment_name, config_file, npzfile):
         f'#SBATCH --partition=cpu-prio',
         f'#SBATCH --output="{results_dir}/output/output-%A-%a.txt"',
         f'#SBATCH --array=0-{n_reps - 1}',
+        # Always use srun within sbatch.
+        # https://stackoverflow.com/a/53640511/6936216
+        f"srun bash -c 'echo Running on $(hostname)'",
         (
-            # Always use srun within sbatch.
-            # https://stackoverflow.com/a/53640511/6936216
-            f'srun '
-            f'nix develop "{job_dir}" --command '
+            # Don't export environment variables but run Nix in a clean
+            # environment or else there will likely be problems with GLIBC
+            # versions.
+            f'srun --export=NONE '
+            f'/run/current-system/sw/bin/nix develop "{job_dir}" --command '
             f'python scripts/run.py run "{npzfile}" '
             f'{config_file_option} '
             f'--experiment-name={experiment_name} '
