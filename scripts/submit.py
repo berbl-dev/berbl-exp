@@ -77,6 +77,7 @@ def submit(slurm_options, n_reps, experiment_name, config_file, npzfile):
             f'/run/current-system/sw/bin/nix develop "{job_dir}" --command '
             f'python scripts/run.py run "{npzfile}" '
             f'{config_file_option} '
+            f'--tracking-uri={results_dir}/mlruns '
             f'--experiment-name={experiment_name} '
             f'--seed=$(({seed_offset} + $SLURM_ARRAY_TASK_ID)) '
             '--run-name=${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}\n')
