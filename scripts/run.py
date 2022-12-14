@@ -299,11 +299,6 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
             #     ax.hlines(y_test_true.min() - 0.1 * (i + 1), match.l, match.u, linestyle="dotted")
             plt.show()
 
-        import IPython
-        IPython.embed(banner1="")
-        import sys
-        sys.exit(1)
-
 
 if __name__ == "__main__":
     cli()
