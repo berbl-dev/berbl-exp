@@ -235,12 +235,15 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
         log_params_rec(config)
 
         toolbox = DefaultToolbox(
-            **(dict(random_state=random_state,
-                    params_fitness=config["toolbox"]["fitness"],
-                    params_init=config["toolbox"]["init"],
-                    params_crossover=config["toolbox"]["crossover"],
-                    matchcls=config["matchcls"],
-                    match_args=config["match"])))
+            matchcls=config["matchcls"],
+            random_state=random_state,
+            params_match=config["match"],
+            params_init=config["toolbox"]["init"],
+            params_fitness=config["toolbox"]["fitness"],
+            params_select=config["toolbox"]["select"],
+            params_mutate=config["toolbox"]["mutate"],
+            params_crossover=config["toolbox"]["crossover"],
+        )
         # TODO FIXME
         # Provide all parameters as keyword arguments.
         # This way, we can override Rule, Mixing and
