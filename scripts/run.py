@@ -11,19 +11,12 @@ import sklearn.pipeline as pipeline  # type: ignore
 import tomli
 from berbl import BERBL
 from berbl.search.operators.drugowitsch import DefaultToolbox
+from berbl.utils import log_arrays
 from sklearn import metrics  # type: ignore
 from sklearn.preprocessing import StandardScaler  # type: ignore
 from sklearn.utils import check_random_state  # type: ignore
 from sklearn.utils.validation import check_is_fitted  # type: ignore
 from tqdm import tqdm  # type: ignore
-
-
-def log_arrays(artifact_name, **arrays):
-    with tempfile.TemporaryDirectory(
-            prefix=f"{artifact_name}-") as tempdir_name:
-        fname = f"{tempdir_name}/{artifact_name}.npz"
-        np.savez(fname, **arrays)
-        mlflow.log_artifact(fname)
 
 
 def log_params_rec(conf, prefix=None):
