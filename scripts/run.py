@@ -203,17 +203,30 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
         X_test = data["X_test"]
         y_test_true = data["y_test_true"]
 
+        # See arguments of metameric.DefaultToolbox.
+        # TODO Hardcoding this here ain't nice
+        config_default = dict(
+            match=None,
+            search=None,
+            toolbox=dict(matchcls=None,
+                         init=None,
+                         fitness=None,
+                         select=None,
+                         mutate=None,
+                         crossover=None),
+        )
+
         if config_file is not None:
             # Load config.
             with open(config_file, "rb") as f:
                 config = tomli.load(f)
+
+            config = override_defaults(config, config_default, "config")
         else:
-            raise NotImplementedError(
-                "Right now we don't have a default config yet")
+            config = config_default
 
         # Override parameters if specified as CLI arguments.
         maybe_override(config, "matchcls", match)
-        maybe_override(config["search"], "n_iter", n_iter)
         # TODO maybe_override(config["search"], "pop_size", pop_size)
         maybe_override(config["search"], "n_iter", n_iter)
         maybe_override(config["search"], "callback_gen", callback)
