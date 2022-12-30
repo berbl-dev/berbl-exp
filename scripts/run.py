@@ -257,14 +257,6 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
                  toolbox=toolbox, params_search=config["search"])))
         ])
 
-        # Sort test data and predictions for easier plotting.
-        perm = np.argsort(X_test, axis=0)
-        X_test = np.take_along_axis(X_test, perm, axis=0)
-        y_test_true = np.take_along_axis(y_test_true, perm, axis=0)
-        # Note that we could also do this after performing predictions, in which
-        # case we'd need to also do:
-        # y_test_pred = np.take_along_axis(y_test_pred, perm, axis=0)
-
         with np.errstate(all="ignore"):
             estimator = pipe.fit(X, y)
             y_test_pred, y_test_pred_var = estimator.predict_mean_var(X_test)
