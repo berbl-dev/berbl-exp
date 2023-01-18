@@ -40,16 +40,29 @@ def callback(ga):
     """
     Prints some additional stats in each search iteration.
     """
-    tqdm.write(f"Current elitist has length {str(len(ga.elitist_[0]))}.")
+    elitist = ga.elitist_[0]
+    tqdm.write(f"Current elitist has length {str(len(elitist))}.")
+
+    elitist_phen = elitist.phenotype
+    mlflow.log_metrics({
+        "best.length" : len(elitist),
+        "best.ln_p_M_D" : elitist_phen.ln_p_M_D_,
+        "best.ln_p_M" : elitist_phen.ln_p_M_,
+        "best.L_M_q" : elitist_phen.L_M_q_,
+        "best.L_q" : elitist_phen.L_q_,
+    })
 
     lens = [len(i) for i in ga.pop_]
     dist = pd.DataFrame(np.array(np.unique(lens, return_counts=True)).T, columns=["K", "count"]).set_index("K")
     tqdm.write(f"\nLength distribution:\n {dist}.")
+    log_arrays("pop_stats", lengths=np.array(lens))
 
     try:
         tqdm.write(f"\nCurrent bias factor: {ga.bias_:.2}")
         lens_ = ga.lens_
         tqdm.write(f"\nLast used niches during selection: {ga.lens_}.")
+
+        mlflow.log_metric("bias", ga.bias_, step=ga.iteration)
     except:
         tqdm.write("Not using metameric GA, so not printing used niches etc.")
 
@@ -280,14 +293,9 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
         mse = metrics.mean_squared_error(y_test_true, y_test_pred)
         # TODO Shouldn't R2 be computed in-sample?
         r2 = metrics.r2_score(y_test_true, y_test_pred)
-        mlflow.log_metric("elitist.size",
-                          estimator[-1].regressor_.search_.size_[0], n_iter)
-        mlflow.log_metric("elitist.ln_p_M_D",
-                          estimator[-1].regressor_.search_.ln_p_M_D_[0],
-                          n_iter)
-        mlflow.log_metric("elitist.mae", mae, n_iter)
-        mlflow.log_metric("elitist.mse", mse, n_iter)
-        mlflow.log_metric("elitist.r2_score", r2, n_iter)
+        mlflow.log_metric("final.mae", mae, n_iter)
+        mlflow.log_metric("final.mse", mse, n_iter)
+        mlflow.log_metric("final.r2_score", r2, n_iter)
 
         # TODO Log elitist, final population etc.
 
