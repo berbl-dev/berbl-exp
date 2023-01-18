@@ -40,14 +40,18 @@ def callback(ga):
     """
     Prints some additional stats in each search iteration.
     """
+    tqdm.write(f"Current elitist has length {str(len(ga.elitist_[0]))}.")
+
+    lens = [len(i) for i in ga.pop_]
+    dist = pd.DataFrame(np.array(np.unique(lens, return_counts=True)).T, columns=["K", "count"]).set_index("K")
+    tqdm.write(f"\nLength distribution:\n {dist}.")
+
     try:
-        bounds = pd.DataFrame(list(map(lambda x: (x.l, x.u), ga.elitist_[0])))
-        bounds = bounds.sort_values(0)
-        tqdm.write(str(bounds))
-    # Don't write anything if matching function family doesn't have l and u
-    # parameters.
-    except AttributeError:
-        pass
+        lens_ = ga.lens_
+        tqdm.write(f"\nLast used niches during selection: {ga.lens_}.")
+    except:
+        tqdm.write("Not using metameric GA, so not printing used niches.")
+
 
 
 class Pipeline(pipeline.Pipeline):
