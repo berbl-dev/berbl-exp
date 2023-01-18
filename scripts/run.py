@@ -205,7 +205,11 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
         X = data["X"]
         y = data["y"]
         X_test = data["X_test"]
-        y_test_true = data["y_test_true"]
+        try:
+            y_test_true = data["y_test_true"]
+        except KeyError:
+            y_test_true = data["y_test"]
+
 
         # See arguments of metameric.DefaultToolbox.
         # TODO Hardcoding this here ain't nice
