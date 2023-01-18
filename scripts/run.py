@@ -47,10 +47,11 @@ def callback(ga):
     tqdm.write(f"\nLength distribution:\n {dist}.")
 
     try:
+        tqdm.write(f"\nCurrent bias factor: {ga.bias_:.2}")
         lens_ = ga.lens_
         tqdm.write(f"\nLast used niches during selection: {ga.lens_}.")
     except:
-        tqdm.write("Not using metameric GA, so not printing used niches.")
+        tqdm.write("Not using metameric GA, so not printing used niches etc.")
 
 
 
