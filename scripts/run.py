@@ -209,10 +209,10 @@ def run(seed, config_file, n_iter, match, run_name, tracking_uri,
         # See arguments of metameric.DefaultToolbox.
         # TODO Hardcoding this here ain't nice
         config_default = dict(
+            matchcls=None,
             match=None,
             search=None,
-            toolbox=dict(matchcls=None,
-                         init=None,
+            toolbox=dict(init=None,
                          fitness=None,
                          select=None,
                          mutate=None,
