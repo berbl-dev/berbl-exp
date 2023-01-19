@@ -50,12 +50,12 @@ def callback(ga):
         "best.ln_p_M" : elitist_phen.ln_p_M_,
         "best.L_M_q" : elitist_phen.L_M_q_,
         "best.L_q" : elitist_phen.L_q_,
-    })
+    }, step=ga.iteration)
 
     lens = [len(i) for i in ga.pop_]
     dist = pd.DataFrame(np.array(np.unique(lens, return_counts=True)).T, columns=["K", "count"]).set_index("K")
     tqdm.write(f"\nLength distribution:\n {dist}.")
-    log_arrays("pop_stats", lengths=np.array(lens))
+    log_arrays("pop_stats", lengths=np.array(lens), step=ga.iteration)
 
     try:
         tqdm.write(f"\nCurrent bias factor: {ga.bias_:.2}")
